@@ -1,5 +1,6 @@
 package com.byteshaft.locationlogger.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,7 +14,9 @@ import android.widget.TextView;
 
 import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
+import com.byteshaft.locationlogger.services.LocationService;
 import com.byteshaft.locationlogger.utils.AppGlobals;
+import com.byteshaft.locationlogger.utils.DatabaseHelpers;
 import com.byteshaft.locationlogger.utils.Helpers;
 
 /**
@@ -27,11 +30,14 @@ public class InstructionsFragment extends Fragment {
     TextView tvInstructionsTimeLeft;
     TextView tvInstructionsCaution;
     Button btnWithdraw;
+    Intent locationServiceIntent;
+    DatabaseHelpers mDatabaseHelpers;
 
     Runnable withdraw = new Runnable() {
         public void run() {
             AppGlobals.putAppStatus(0);
             Helpers.loadFragment(MainActivity.fragmentManager, new WelcomeFragment(), true);
+//            getActivity().stopService(locationServiceIntent);
         }
     };
 
@@ -39,6 +45,9 @@ public class InstructionsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         baseViewInstructionsFragment = inflater.inflate(R.layout.fragment_instructions, container, false);
+        locationServiceIntent = new Intent(getActivity(), LocationService.class);
+        mDatabaseHelpers = new DatabaseHelpers(getActivity());
+        getActivity().startService(locationServiceIntent);
 
         tvInstructionsCaution = (TextView) baseViewInstructionsFragment.findViewById(R.id.tv_instructions_caution);
         tvInstructionsTimeLeft = (TextView) baseViewInstructionsFragment.findViewById(R.id.tv_time_left);
