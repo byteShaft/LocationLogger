@@ -16,10 +16,13 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
+import com.byteshaft.locationlogger.utils.AppGlobals;
 import com.byteshaft.locationlogger.utils.Helpers;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -44,6 +47,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     public static boolean isQuestionnaireFragmentOpen;
     public static String mapLocationPoint;
     Marker mapLocationPointMarker;
+    Button btnQuestionnaireFragmentWithdraw;
     Button btnQuestionnaireFragmentRemove;
     Button btnQuestionnaireFragmentNext;
     ImageButton btnQuestionnaireFragmentSearch;
@@ -52,6 +56,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     TextView tvQuestionnaireBottomOverlayOne;
     TextView tvQuestionnaireBottomOverlayTwo;
     TextView tvQuestionnaireBottomOverlayThree;
+    LinearLayout llQuestionnaireBottomOverlayThree;
     boolean isSearchEditTextVisible;
     private String inputMapSearch;
     private boolean mapMarkerAdded;
@@ -63,6 +68,12 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     private Animation animLayoutMapSearchBarFadeIn;
     private static GoogleMap mMap = null;
     private static LatLng currentLatLngAuto;
+    Runnable withdrawInQuestionnaireFragment = new Runnable() {
+        public void run() {
+            AppGlobals.putAppStatus(0);
+            Helpers.loadFragment(MainActivity.fragmentManager, new WelcomeFragment(), true, null);
+        }
+    };
     private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
         @Override
         public void onMyLocationChange(Location location) {
@@ -86,6 +97,8 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         tvQuestionnaireBottomOverlayTwo = (TextView) baseViewQuestionnaireFragment.findViewById(R.id.tv_map_bottom_overlay_two);
         tvQuestionnaireBottomOverlayThree = (TextView) baseViewQuestionnaireFragment.findViewById(R.id.tv_map_bottom_overlay_three);
 
+        llQuestionnaireBottomOverlayThree = (LinearLayout) baseViewQuestionnaireFragment.findViewById(R.id.ll_map_bottom_overlay_three);
+
         btnQuestionnaireFragmentSearch = (ImageButton) baseViewQuestionnaireFragment.findViewById(R.id.btn_map_search);
         btnQuestionnaireFragmentSearch.setOnClickListener(this);
         btnQuestionnaireFragmentMapType = (ImageButton) baseViewQuestionnaireFragment.findViewById(R.id.btn_map_type);
@@ -93,10 +106,14 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         btnQuestionnaireFragmentCurrentLocation = (ImageButton) baseViewQuestionnaireFragment.findViewById(R.id.btn_map_current_location);
         btnQuestionnaireFragmentCurrentLocation.setOnClickListener(this);
 
+        btnQuestionnaireFragmentWithdraw = (Button) baseViewQuestionnaireFragment.findViewById(R.id.btn_map_bottom_overlay_withdraw);
+        btnQuestionnaireFragmentWithdraw.setOnClickListener(this);
+
         btnQuestionnaireFragmentNext = (Button) baseViewQuestionnaireFragment.findViewById(R.id.btn_map_bottom_overlay_next);
         btnQuestionnaireFragmentNext.setOnClickListener(this);
         btnQuestionnaireFragmentNext.setEnabled(false);
         btnQuestionnaireFragmentNext.setAlpha(0.5f);
+
         btnQuestionnaireFragmentRemove = (Button) baseViewQuestionnaireFragment.findViewById(R.id.btn_map_bottom_overlay_remove);
         btnQuestionnaireFragmentRemove.setOnClickListener(this);
         btnQuestionnaireFragmentRemove.setEnabled(false);
@@ -130,7 +147,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                                     mapLocationPoint = latitude + "," + longitude;
                                     mapLocationPointMarker = mMap.addMarker(new MarkerOptions().position(latLng));
                                     mapMarkerAdded = true;
-                                    tvQuestionnaireBottomOverlayThree.setVisibility(View.GONE);
+                                    llQuestionnaireBottomOverlayThree.setVisibility(View.GONE);
                                     btnQuestionnaireFragmentNext.setEnabled(true);
                                     btnQuestionnaireFragmentNext.setAlpha(1.0f);
                                     btnQuestionnaireFragmentRemove.setEnabled(true);
@@ -214,15 +231,21 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         return baseViewQuestionnaireFragment;
     }
 
+
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.btn_map_bottom_overlay_withdraw:
+                Helpers.AlertDialogWithPositiveFunctionNegativeButton(getActivity(), "Are you sure?",
+                        "Proceeding with withdrawal will result in all of your logged data to be lost.",
+                        "Yes", "Cancel", withdrawInQuestionnaireFragment);
+                break;
             case R.id.btn_map_bottom_overlay_next:
                 if (mapMarkerAdded) {
                     questionCount++;
                     mapLocationPointMarker.remove();
                     mapMarkerAdded = false;
-                    tvQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
+                    llQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
                     btnQuestionnaireFragmentNext.setEnabled(false);
                     btnQuestionnaireFragmentNext.setAlpha(0.5f);
                     btnQuestionnaireFragmentRemove.setEnabled(false);
@@ -236,7 +259,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
             case R.id.btn_map_bottom_overlay_remove:
                 mapLocationPointMarker.remove();
                 mapMarkerAdded = false;
-                tvQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
+                llQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
                 btnQuestionnaireFragmentNext.setEnabled(false);
                 btnQuestionnaireFragmentNext.setAlpha(0.5f);
                 btnQuestionnaireFragmentRemove.setEnabled(false);

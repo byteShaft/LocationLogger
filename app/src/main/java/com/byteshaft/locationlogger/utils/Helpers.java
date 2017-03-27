@@ -97,7 +97,8 @@ public class Helpers {
         }
     }
 
-    public static void loadFragment(FragmentManager fragmentManager, android.support.v4.app.Fragment fragment, boolean withdraw) {
+    public static void loadFragment(FragmentManager fragmentManager, android.support.v4.app.Fragment fragment, boolean withdraw,
+                                    String fragmentName) {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         if (withdraw) {
             transaction.setCustomAnimations(R.anim.anim_transition_fragment_slide_left_enter, R.anim.anim_transition_fragment_slide_right_exit,
@@ -106,7 +107,11 @@ public class Helpers {
             transaction.setCustomAnimations(R.anim.anim_transition_fragment_slide_right_enter, R.anim.anim_transition_fragment_slide_left_exit,
                     R.anim.anim_transition_fragment_slide_left_enter, R.anim.anim_transition_fragment_slide_right_exit);
         }
-        transaction.replace(R.id.container_main, fragment);
+        if (fragmentName != null) {
+            transaction.replace(R.id.container_main, fragment).addToBackStack(fragmentName);
+        } else {
+            transaction.replace(R.id.container_main, fragment);
+        }
         transaction.commit();
     }
 

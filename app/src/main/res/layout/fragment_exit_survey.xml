@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp"
+        android:weightSum="2"
+        android:layout_alignParentBottom="true">
+
+        <Button
+            android:id="@+id/btn_exit_submit"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="3dp"
+            android:textSize="18dp"
+            android:text="SUBMIT"
+            android:padding="10dp"
+            android:textColor="@drawable/button_text_color"
+            android:background="@drawable/background_button" />
+
+        <Button
+            android:id="@+id/btn_exit_withdraw"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:textSize="18dp"
+            android:text="WITHDRAW"
+            android:padding="10dp"
+            android:textColor="@drawable/button_text_color"
+            android:background="@drawable/background_button" />
+    </LinearLayout>
+
+</RelativeLayout>

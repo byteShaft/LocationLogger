@@ -38,18 +38,22 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     public void onBackPressed() {
+        if (fragmentManager.getBackStackEntryCount() > 0) {
+            fragmentManager.popBackStack();
+        } else {
             super.onBackPressed();
+        }
     }
 
     private void loadRespectiveFragment() {
         if (AppGlobals.getAppStatus() == 0) {
-            Helpers.loadFragment(fragmentManager, new WelcomeFragment(), false);
+            Helpers.loadFragment(fragmentManager, new WelcomeFragment(), false, null);
         } else if (AppGlobals.getAppStatus() == 1) {
-            Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false);
+            Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false, null);
         } else if (AppGlobals.getAppStatus() == 2) {
-            Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false);
+            Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false, null);
         } else if (AppGlobals.getAppStatus() == 3) {
-            Helpers.loadFragment(fragmentManager, new SurveyFragment(), false);
+            Helpers.loadFragment(fragmentManager, new SurveyFragment(), false, null);
         }
     }
 

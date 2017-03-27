@@ -11,9 +11,6 @@ import java.util.HashMap;
 
 public class DatabaseHelpers extends SQLiteOpenHelper {
 
-    public static final String TABLE_NAME = "location_table";
-
-
     public DatabaseHelpers(Context context) {
         super(context, DatabaseConstants.DATABASE_NAME, null, DatabaseConstants.DATABASE_VERSION);
     }
@@ -39,13 +36,10 @@ public class DatabaseHelpers extends SQLiteOpenHelper {
         db.close();
     }
 
-    public HashMap<String, String> getUserRecord(String username) {
+    public HashMap<String, String> getAllRecords() {
         SQLiteDatabase db = getReadableDatabase();
         String query = "SELECT * FROM "
-                + DatabaseConstants.TABLE_NAME
-                + " WHERE "
-                + DatabaseConstants.USERNAME + "="
-                + "'"+username+"'";
+                + DatabaseConstants.TABLE_NAME;
         Cursor cursor = db.rawQuery(query, null);
         HashMap<String, String> hashMap = new HashMap<>();
         while (cursor.moveToNext()) {
