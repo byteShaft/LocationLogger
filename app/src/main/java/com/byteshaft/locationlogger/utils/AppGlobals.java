@@ -16,6 +16,7 @@ public class AppGlobals extends Application {
     private static final String USERNAME = "username";
     private static final String AGE = "age";
     private static final String GENDER = "gender";
+    private static final String ADVERSARY_ADDED = "adversary_added";
     private static final String ADVERSARY_NAME = "adversary_name";
     private static final String RELATION_WITH_ADVERSARY = "relation_with_adversary";
     private static Context sContext;
@@ -31,6 +32,14 @@ public class AppGlobals extends Application {
 
     public static void putAppStatus(int status) {
         sPreferences.edit().putInt(APP_STATUS, status).apply();
+    }
+
+    public static boolean isAdversaryAdded() {
+        return sPreferences.getBoolean(ADVERSARY_ADDED, false);
+    }
+
+    public static void putAdversaryAdded(boolean adversaryAdded) {
+        sPreferences.edit().putBoolean(ADVERSARY_ADDED, adversaryAdded).apply();
     }
 
     public static String getUsername() {
