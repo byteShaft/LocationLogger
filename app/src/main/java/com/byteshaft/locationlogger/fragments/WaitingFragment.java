@@ -12,7 +12,6 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
 import com.byteshaft.locationlogger.services.LocationService;
 import com.byteshaft.locationlogger.utils.AppGlobals;
@@ -33,13 +32,6 @@ public class WaitingFragment extends Fragment {
     Intent locationServiceIntent;
     DatabaseHelpers mDatabaseHelpers;
 
-    Runnable withdraw = new Runnable() {
-        public void run() {
-            AppGlobals.putAppStatus(0);
-            Helpers.loadFragment(MainActivity.fragmentManager, new WelcomeFragment(), true, null);
-//            getActivity().stopService(locationServiceIntent);
-        }
-    };
 
     @Nullable
     @Override
@@ -61,7 +53,7 @@ public class WaitingFragment extends Fragment {
             public void onClick(View view) {
                 Helpers.AlertDialogWithPositiveFunctionNegativeButton(getActivity(), "Are you sure?",
                         "Proceeding with withdrawal will result in all of your logged data to be lost.",
-                        "Yes", "Cancel", withdraw);
+                        "Yes", "Cancel", Helpers.withdraw);
             }
         });
 

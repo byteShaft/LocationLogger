@@ -4,6 +4,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -68,12 +69,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     private Animation animLayoutMapSearchBarFadeIn;
     private static GoogleMap mMap = null;
     private static LatLng currentLatLngAuto;
-    Runnable withdrawInQuestionnaireFragment = new Runnable() {
-        public void run() {
-            AppGlobals.putAppStatus(0);
-            Helpers.loadFragment(MainActivity.fragmentManager, new WelcomeFragment(), true, null);
-        }
-    };
+
     private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
         @Override
         public void onMyLocationChange(Location location) {
@@ -82,6 +78,18 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                 cameraAnimatedToCurrentLocation = true;
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLngAuto, 15.0f));
             }
+        }
+    };
+
+    public static final Runnable adversaryRetake = new Runnable() {
+        public void run() {
+
+        }
+    };
+
+    public static final Runnable proceedWithoutAdversary = new Runnable() {
+        public void run() {
+            Helpers.loadFragment(MainActivity.fragmentManager, new ExitSurveyFragment(), false, null);
         }
     };
 
@@ -148,6 +156,13 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                                     mapLocationPointMarker = mMap.addMarker(new MarkerOptions().position(latLng));
                                     mapMarkerAdded = true;
                                     llQuestionnaireBottomOverlayThree.setVisibility(View.GONE);
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            tvQuestionnaireBottomOverlayThree.setText("Location Marked - Continue");
+                                            llQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
+                                        }
+                                    }, 750);
                                     btnQuestionnaireFragmentNext.setEnabled(true);
                                     btnQuestionnaireFragmentNext.setAlpha(1.0f);
                                     btnQuestionnaireFragmentRemove.setEnabled(true);
@@ -238,28 +253,49 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
             case R.id.btn_map_bottom_overlay_withdraw:
                 Helpers.AlertDialogWithPositiveFunctionNegativeButton(getActivity(), "Are you sure?",
                         "Proceeding with withdrawal will result in all of your logged data to be lost.",
-                        "Yes", "Cancel", withdrawInQuestionnaireFragment);
+                        "Yes", "Cancel", Helpers.withdraw);
                 break;
             case R.id.btn_map_bottom_overlay_next:
                 if (mapMarkerAdded) {
-                    questionCount++;
-                    mapLocationPointMarker.remove();
-                    mapMarkerAdded = false;
-                    llQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
-                    btnQuestionnaireFragmentNext.setEnabled(false);
-                    btnQuestionnaireFragmentNext.setAlpha(0.5f);
-                    btnQuestionnaireFragmentRemove.setEnabled(false);
-                    btnQuestionnaireFragmentRemove.setAlpha(0.5f);
-                    tvQuestionnaireBottomOverlayOne.setText(questionCount + 1 + "/10");
-                    if (questionCount > 8) {
-                        btnQuestionnaireFragmentNext.setText("Done");
+                    if (questionCount < 3) {
+                        questionCount++;
+                        mapLocationPointMarker.remove();
+                        mapMarkerAdded = false;
+                        llQuestionnaireBottomOverlayThree.setVisibility(View.GONE);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                tvQuestionnaireBottomOverlayThree.setText("Tap and hold to set a point");
+                                llQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
+                            }
+                        }, 750);
+                        btnQuestionnaireFragmentNext.setEnabled(false);
+                        btnQuestionnaireFragmentNext.setAlpha(0.5f);
+                        btnQuestionnaireFragmentRemove.setEnabled(false);
+                        btnQuestionnaireFragmentRemove.setAlpha(0.5f);
+                        tvQuestionnaireBottomOverlayOne.setText(questionCount + 1 + "/10");
+                    } else {
+                        if (AppGlobals.isAdversaryAdded()) {
+                            Helpers.AlertDialogWithPositiveNegativeFunctions(getActivity(), "Adversary Retake",
+                                    "You have an adversary added. Do you want the adversary to take the test as well?", "Yes", "No",
+                                    adversaryRetake, proceedWithoutAdversary);
+                        } else {
+                            Helpers.loadFragment(MainActivity.fragmentManager, new ExitSurveyFragment(), false, null);
+                        }
                     }
                 }
                 break;
             case R.id.btn_map_bottom_overlay_remove:
                 mapLocationPointMarker.remove();
                 mapMarkerAdded = false;
-                llQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
+                llQuestionnaireBottomOverlayThree.setVisibility(View.GONE);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        tvQuestionnaireBottomOverlayThree.setText("Tap and hold to set a point");
+                        llQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
+                    }
+                }, 750);
                 btnQuestionnaireFragmentNext.setEnabled(false);
                 btnQuestionnaireFragmentNext.setAlpha(0.5f);
                 btnQuestionnaireFragmentRemove.setEnabled(false);

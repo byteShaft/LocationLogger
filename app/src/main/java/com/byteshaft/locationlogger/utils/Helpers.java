@@ -19,6 +19,7 @@ import android.support.v4.app.FragmentTransaction;
 
 import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
+import com.byteshaft.locationlogger.fragments.WelcomeFragment;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.model.LatLng;
@@ -35,6 +36,17 @@ public class Helpers {
             System.exit(0);
         }
     };
+
+    public static final Runnable withdraw = new Runnable() {
+        public void run() {
+            AppGlobals.putAppStatus(0);
+            AppGlobals.putAdversaryAdded(false);
+            Helpers.loadFragment(MainActivity.fragmentManager, new WelcomeFragment(), true, null);
+
+//            getActivity().stopService(locationServiceIntent);
+        }
+    };
+
     public static ProgressDialog progressDialog;
 
     public static void showProgressDialog(Context context, String message) {
