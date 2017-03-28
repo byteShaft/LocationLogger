@@ -19,6 +19,9 @@ import com.byteshaft.locationlogger.utils.AppGlobals;
 import com.byteshaft.locationlogger.utils.DatabaseHelpers;
 import com.byteshaft.locationlogger.utils.Helpers;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 /**
  * Created by fi8er1 on 18/03/2017.
  */
@@ -37,7 +40,11 @@ public class InstructionsFragment extends Fragment {
         public void run() {
             AppGlobals.putAppStatus(0);
             Helpers.loadFragment(MainActivity.fragmentManager, new WelcomeFragment(), true);
-//            getActivity().stopService(locationServiceIntent);
+            getActivity().stopService(locationServiceIntent);
+            ArrayList arrayList = mDatabaseHelpers.getAllRecords();
+            System.out.println(mDatabaseHelpers.getAllRecords());
+            System.out.println(arrayList.get(0));
+
         }
     };
 

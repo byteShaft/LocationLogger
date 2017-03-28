@@ -22,6 +22,9 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class LocationService extends Service implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -65,8 +68,14 @@ public class LocationService extends Service implements
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
         mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 //        mLocationRequest.setSmallestDisplacement(100);
+    }
+
+    private String getCurrentTimeStamp() {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-HH-mm");
+        String format = simpleDateFormat.format(new Date());
+        return format;
     }
 
     public void startLocationUpdates() {
@@ -116,9 +125,10 @@ public class LocationService extends Service implements
         String latitudeAsString = String.valueOf(latitude);
         String longitudeAsString = String.valueOf(longitude);
 
-//        System.out.println(location.getLatitude());
-//        System.out.println(location.getLongitude());
-//        mDatabaseHelpers.createNewEntry("Test", latitudeAsString, longitudeAsString);
+        System.out.println(location.getLatitude());
+        System.out.println(location.getLongitude());
+        System.out.println(getCurrentTimeStamp());
+        mDatabaseHelpers.createNewEntry(latitudeAsString, longitudeAsString, getCurrentTimeStamp());
     }
     @Override
     public void onConnected(@Nullable Bundle bundle) {
