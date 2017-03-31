@@ -13,6 +13,13 @@ public class AppGlobals extends Application {
 
     private static final String APP_STATUS = "app_status";
     private static final String UNIQUE_DEVICE_ID = "unique_device_id";
+    private static final String USERNAME = "username";
+    private static final String AGE = "age";
+    private static final String GENDER = "gender";
+    private static final String ADVERSARY_ADDED = "adversary_added";
+    private static final String ADVERSARY_NAME = "adversary_name";
+    private static final String RELATION_WITH_ADVERSARY = "relation_with_adversary";
+    private static final String ALARM_TIME_IN_MILLIS = "alarm_time_in_millis";
     private static Context sContext;
     private static SharedPreferences sPreferences;
 
@@ -26,6 +33,62 @@ public class AppGlobals extends Application {
 
     public static void putAppStatus(int status) {
         sPreferences.edit().putInt(APP_STATUS, status).apply();
+    }
+
+    public static long getAlarmTime() {
+        return sPreferences.getLong(ALARM_TIME_IN_MILLIS, 0);
+    }
+
+    public static void putAlarmTime(long time) {
+        sPreferences.edit().putLong(ALARM_TIME_IN_MILLIS, time).apply();
+    }
+
+    public static boolean isAdversaryAdded() {
+        return sPreferences.getBoolean(ADVERSARY_ADDED, false);
+    }
+
+    public static void putAdversaryAdded(boolean adversaryAdded) {
+        sPreferences.edit().putBoolean(ADVERSARY_ADDED, adversaryAdded).apply();
+    }
+
+    public static String getUsername() {
+        return sPreferences.getString(USERNAME, null);
+    }
+
+    public static void putUserName(String username) {
+        sPreferences.edit().putString(USERNAME, username).apply();
+    }
+
+    public static String getAdversaryName() {
+        return sPreferences.getString(ADVERSARY_NAME, null);
+    }
+
+    public static void putAdversaryName(String adversaryName) {
+        sPreferences.edit().putString(ADVERSARY_NAME, adversaryName).apply();
+    }
+
+    public static String getRelationWithAdversary() {
+        return sPreferences.getString(RELATION_WITH_ADVERSARY, null);
+    }
+
+    public static void putRelationWithAdversary(String relationWithAdversary) {
+        sPreferences.edit().putString(RELATION_WITH_ADVERSARY, relationWithAdversary).apply();
+    }
+
+    public static String getGender() {
+        return sPreferences.getString(GENDER, null);
+    }
+
+    public static void putGender(String gender) {
+        sPreferences.edit().putString(GENDER, gender).apply();
+    }
+
+    public static String getAge() {
+        return sPreferences.getString(AGE, null);
+    }
+
+    public static void putAge(String age) {
+        sPreferences.edit().putString(AGE, age).apply();
     }
 
     public static String getUniqueDeviceId() {

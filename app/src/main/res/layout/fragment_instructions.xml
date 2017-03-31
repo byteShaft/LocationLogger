@@ -2,71 +2,61 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="32dp"
-    android:paddingRight="32dp">
+    android:padding="24dp">
 
-        <LinearLayout
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:layout_above="@+id/btn_instructions_next"
+        android:background="@drawable/background_button"
+        android:orientation="vertical"
+        android:padding="5dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            android:layout_marginTop="5dp"
+            android:textColor="#ffffff"
+            android:text="INSTRUCTIONS"/>
+
+
+        <View
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="10dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginBottom="15dp"
-            android:layout_above="@+id/btn_withdraw"
-            android:background="@drawable/background_button"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/tv_instructions_caution"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:textColor="@android:color/holo_green_dark"
-                android:textSize="14dp"
-                android:text="We are gathering location data."/>
+            android:layout_height="1dp"
+            android:layout_margin="10dp"
+            android:background="#80ffffff" />
+
+
+        <ScrollView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp">
+
+
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#ffffff"
-                    android:textSize="16dp"
-                    android:text="Time left: "/>
-                <TextView
-                    android:id="@+id/tv_time_left"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/holo_orange_dark"
-                    android:textSize="20dp"
-                    android:text="14Days - 11Hours"/>
+                android:orientation="vertical"
+                android:padding="5dp">
+
+
+
+
             </LinearLayout>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_margin="10dp"
-                android:background="@android:color/darker_gray" />
-            <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:textSize="16dp"
-                android:textColor="#ffffff"
-                android:text="INSTRUCTIONS"/>
-            </ScrollView>
-        </LinearLayout>
+
+        </ScrollView>
+    </LinearLayout>
 
     <Button
-        android:id="@+id/btn_withdraw"
+        android:id="@+id/btn_instructions_next"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
+        android:layout_marginTop="10dp"
         android:layout_alignParentBottom="true"
         android:textSize="18dp"
-        android:text="Withdraw"
+        android:text="NEXT"
         android:padding="10dp"
         android:textColor="@drawable/button_text_color"
         android:background="@drawable/background_button" />

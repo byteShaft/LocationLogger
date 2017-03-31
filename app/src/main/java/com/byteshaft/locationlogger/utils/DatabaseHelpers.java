@@ -31,17 +31,18 @@ public class DatabaseHelpers extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void createNewEntry(String latitude, String longitude, String timestamp) {
+    public void createNewEntry(String latitude, String longitude, String timestamp, String timeAtOnePlace) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DatabaseConstants.LATITUDE, latitude);
         values.put(DatabaseConstants.LONGITUDE, longitude);
         values.put(DatabaseConstants.TIMESTAMP, timestamp);
+        values.put(DatabaseConstants.TIME_AT_ONE_PLACE, timeAtOnePlace);
         db.insert(DatabaseConstants.TABLE_NAME, null, values);
         db.close();
     }
 
-    public ArrayList<HashMap<String, String>> getAllRecords() {
+    public ArrayList<HashMap<String, String>> getRandomRecordFromAllRecords() {
         SQLiteDatabase db = getReadableDatabase();
         String query = "SELECT * FROM "
                 + DatabaseConstants.TABLE_NAME
@@ -56,9 +57,11 @@ public class DatabaseHelpers extends SQLiteOpenHelper {
                     cursor.getColumnIndex(DatabaseConstants.LONGITUDE));
             String timestamp = cursor.getString(
                     cursor.getColumnIndex(DatabaseConstants.TIMESTAMP));
+            String timeAtOnePlace = cursor.getString(cursor.getColumnIndex(DatabaseConstants.TIME_AT_ONE_PLACE));
             hashMap.put(DatabaseConstants.LATITUDE, latitude);
             hashMap.put(DatabaseConstants.LONGITUDE, longitude);
             hashMap.put(DatabaseConstants.TIMESTAMP, timestamp);
+            hashMap.put(DatabaseConstants.TIME_AT_ONE_PLACE, timeAtOnePlace);
             userRecords.add(hashMap);
         }
         db.close();

@@ -5,8 +5,9 @@ import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 
+import com.byteshaft.locationlogger.fragments.ExitSurveyFragment;
 import com.byteshaft.locationlogger.fragments.QuestionnaireFragment;
-import com.byteshaft.locationlogger.fragments.SurveyFragment;
+import com.byteshaft.locationlogger.fragments.ResultsFragment;
 import com.byteshaft.locationlogger.fragments.WelcomeFragment;
 import com.byteshaft.locationlogger.utils.AppGlobals;
 import com.byteshaft.locationlogger.utils.Helpers;
@@ -38,18 +39,26 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     public void onBackPressed() {
+        if (fragmentManager.getBackStackEntryCount() > 0) {
+            fragmentManager.popBackStack();
+        } else {
             super.onBackPressed();
+        }
     }
 
     private void loadRespectiveFragment() {
         if (AppGlobals.getAppStatus() == 0) {
-            Helpers.loadFragment(fragmentManager, new WelcomeFragment(), false);
+            Helpers.loadFragment(fragmentManager, new WelcomeFragment(), false, null);
         } else if (AppGlobals.getAppStatus() == 1) {
-            Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false);
+            Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false, null);
         } else if (AppGlobals.getAppStatus() == 2) {
-            Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false);
+            Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false, null);
         } else if (AppGlobals.getAppStatus() == 3) {
-            Helpers.loadFragment(fragmentManager, new SurveyFragment(), false);
+            Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false, null);
+        } else if (AppGlobals.getAppStatus() == 4) {
+            Helpers.loadFragment(fragmentManager, new ExitSurveyFragment(), false, null);
+        } else if (AppGlobals.getAppStatus() == 5) {
+            Helpers.loadFragment(fragmentManager, new ResultsFragment(), false, null);
         }
     }
 

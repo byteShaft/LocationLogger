@@ -2,7 +2,11 @@ package com.byteshaft.locationlogger.utils;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -12,13 +16,18 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NotificationCompat;
 
 import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
+import com.byteshaft.locationlogger.fragments.WelcomeFragment;
+import com.byteshaft.locationlogger.receivers.AlarmReceiver;
+import com.byteshaft.locationlogger.services.LocationService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.model.LatLng;
@@ -35,6 +44,17 @@ public class Helpers {
             System.exit(0);
         }
     };
+
+    public static final Runnable withdraw = new Runnable() {
+        public void run() {
+            AppGlobals.putAppStatus(0);
+            AppGlobals.putAdversaryAdded(false);
+            Helpers.loadFragment(MainActivity.fragmentManager, new WelcomeFragment(), true, null);
+            Intent locationServiceIntent = new Intent(MainActivity.getInstance(), LocationService.class);
+            MainActivity.getInstance().stopService(locationServiceIntent);
+        }
+    };
+
     public static ProgressDialog progressDialog;
 
     public static void showProgressDialog(Context context, String message) {
@@ -51,6 +71,40 @@ public class Helpers {
         if (progressDialog != null) {
             progressDialog.dismiss();
         }
+    }
+
+    public static void buildNotification(String content) {
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AppGlobals.getContext())
+                .setSmallIcon(R.mipmap.ic_launcher_round)
+                .setContentTitle(content)
+                .setContentText("Scheduled Notification");
+        NotificationManager notificationManager = (NotificationManager)
+                AppGlobals.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(1 , mBuilder.build());
+    }
+
+    public static void scheduleNotification(Notification notification, long delay) {
+
+        Intent notificationIntent = new Intent(AppGlobals.getContext(), AlarmReceiver.class);
+        notificationIntent.putExtra(AlarmReceiver.NOTIFICATION_ID, 1);
+        notificationIntent.putExtra(AlarmReceiver.NOTIFICATION, notification);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(AppGlobals.getContext(), 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        long futureInMillis = SystemClock.elapsedRealtime() + delay;
+        AlarmManager alarmManager = (AlarmManager)AppGlobals.getContext().getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent);
+        AppGlobals.putAlarmTime(futureInMillis);
+        System.out.println("Alarm time before: " + futureInMillis);
+    }
+
+    public static void scheduleNotificationAfterReboot(Notification notification, long delay) {
+        Intent notificationIntent = new Intent(AppGlobals.getContext(), AlarmReceiver.class);
+        notificationIntent.putExtra(AlarmReceiver.NOTIFICATION_ID, 1);
+        notificationIntent.putExtra(AlarmReceiver.NOTIFICATION, notification);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(AppGlobals.getContext(), 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        AlarmManager alarmManager = (AlarmManager)AppGlobals.getContext().getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, delay, pendingIntent);
     }
 
     public static Runnable openPlayServicesInstallation = new Runnable() {
@@ -97,7 +151,8 @@ public class Helpers {
         }
     }
 
-    public static void loadFragment(FragmentManager fragmentManager, android.support.v4.app.Fragment fragment, boolean withdraw) {
+    public static void loadFragment(FragmentManager fragmentManager, android.support.v4.app.Fragment fragment, boolean withdraw,
+                                    String fragmentName) {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         if (withdraw) {
             transaction.setCustomAnimations(R.anim.anim_transition_fragment_slide_left_enter, R.anim.anim_transition_fragment_slide_right_exit,
@@ -106,7 +161,11 @@ public class Helpers {
             transaction.setCustomAnimations(R.anim.anim_transition_fragment_slide_right_enter, R.anim.anim_transition_fragment_slide_left_exit,
                     R.anim.anim_transition_fragment_slide_left_enter, R.anim.anim_transition_fragment_slide_right_exit);
         }
-        transaction.replace(R.id.container_main, fragment);
+        if (fragmentName != null) {
+            transaction.replace(R.id.container_main, fragment).addToBackStack(fragmentName);
+        } else {
+            transaction.replace(R.id.container_main, fragment);
+        }
         transaction.commit();
     }
 

@@ -30,7 +30,7 @@ public class WelcomeFragment extends Fragment {
 
     EditText etLoginEmail;
     EditText etLoginFullName;
-    Button btnLoginStart;
+    Button btnLoginNext;
     CheckBox cbLoginTerms;
 
     String sEmail;
@@ -43,7 +43,7 @@ public class WelcomeFragment extends Fragment {
 
         etLoginEmail = (EditText) baseViewWelcomeFragment.findViewById(R.id.et_login_email);
         etLoginFullName = (EditText) baseViewWelcomeFragment.findViewById(R.id.et_login_full_name);
-        btnLoginStart = (Button) baseViewWelcomeFragment.findViewById(R.id.btn_login_start);
+        btnLoginNext = (Button) baseViewWelcomeFragment.findViewById(R.id.btn_login_next);
         cbLoginTerms = (CheckBox) baseViewWelcomeFragment.findViewById(R.id.cb_terms_of_service_check);
 
         cbLoginTerms.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -61,7 +61,7 @@ public class WelcomeFragment extends Fragment {
             }
         });
 
-        btnLoginStart.setOnClickListener(new View.OnClickListener() {
+        btnLoginNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 sEmail = etLoginEmail.getText().toString();
@@ -73,8 +73,8 @@ public class WelcomeFragment extends Fragment {
                                     "Location Service disabled", "Enable device GPS to continue", "Settings", "ReCheck", "Dismiss",
                                     openLocationServiceSettings, recheckLocationServiceStatus);
                         } else {
-                            Helpers.loadFragment(MainActivity.fragmentManager, new InstructionsFragment(), false);
-                            AppGlobals.putAppStatus(1);
+                            Helpers.loadFragment(MainActivity.fragmentManager, new InstructionsFragment(), false, "Instructions");
+                            AppGlobals.putUserName(sEmail);
                         }
                     } else {
                         Toast.makeText(getActivity(), "Location permission denied", Toast.LENGTH_SHORT).show();
@@ -86,7 +86,7 @@ public class WelcomeFragment extends Fragment {
         return baseViewWelcomeFragment;
     }
 
-    public boolean validateLoginInfo() {
+    private boolean validateLoginInfo() {
         boolean valid = true;
 
         if (sEmail.trim().isEmpty()) {

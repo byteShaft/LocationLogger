@@ -15,7 +15,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
+import com.byteshaft.locationlogger.utils.AppGlobals;
 import com.byteshaft.locationlogger.utils.DatabaseHelpers;
+import com.byteshaft.locationlogger.utils.Helpers;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -33,6 +35,8 @@ public class LocationService extends Service implements
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private DatabaseHelpers mDatabaseHelpers;
+    private Location mPreviousLocation;
+    private long timeStayedAtOnePlace;
 
     private final class ServiceHandler extends Handler {
         public ServiceHandler(Looper looper) {
@@ -120,15 +124,32 @@ public class LocationService extends Service implements
 
     @Override
     public void onLocationChanged(Location location) {
+
+        long systemTimeInMillis = System.currentTimeMillis();
+        if (systemTimeInMillis > AppGlobals.getAlarmTime()) {
+            Helpers.buildNotification("TEST");
+            stopSelf();
+        } else if (mPreviousLocation != null) {
+            long prevTime = mPreviousLocation.getTime();
+            long currentTime = location.getTime();
+
+            timeStayedAtOnePlace = currentTime - prevTime;
+        }
+
+        mPreviousLocation = location;
+
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
+
         String latitudeAsString = String.valueOf(latitude);
         String longitudeAsString = String.valueOf(longitude);
+        String timeAtOnePlaceAsString = String.valueOf(timeStayedAtOnePlace);
 
-        System.out.println(location.getLatitude());
-        System.out.println(location.getLongitude());
-        System.out.println(getCurrentTimeStamp());
-        mDatabaseHelpers.createNewEntry(latitudeAsString, longitudeAsString, getCurrentTimeStamp());
+//        System.out.println(location.getLatitude());
+//        System.out.println(location.getLongitude());
+//        System.out.println(getCurrentTimeStamp());
+
+        mDatabaseHelpers.createNewEntry(latitudeAsString, longitudeAsString, getCurrentTimeStamp(), timeAtOnePlaceAsString);
     }
     @Override
     public void onConnected(@Nullable Bundle bundle) {

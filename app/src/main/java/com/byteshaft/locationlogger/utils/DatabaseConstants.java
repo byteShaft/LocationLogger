@@ -7,6 +7,7 @@ public class DatabaseConstants {
     public static final String LATITUDE = "latitude";
     public static final String LONGITUDE = "longitude";
     public static final String TIMESTAMP = "timestamp";
+    public static final String TIME_AT_ONE_PLACE = "time_at_one_place";
     private static final String OPENING_BRACE = "(";
     private static final String CLOSING_BRACE = ")";
 
@@ -15,6 +16,7 @@ public class DatabaseConstants {
             + OPENING_BRACE
             + LATITUDE + " TEXT,"
             + LONGITUDE + " TEXT,"
-            + TIMESTAMP + " TEXT"
+            + TIMESTAMP + " TEXT,"
+            + TIME_AT_ONE_PLACE + " TEXT"
             + CLOSING_BRACE;
 }

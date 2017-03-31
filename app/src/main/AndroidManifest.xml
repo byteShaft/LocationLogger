@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
         android:name=".utils.AppGlobals"
@@ -24,15 +25,26 @@
 
         <service android:name=".services.LocationService" />
         <receiver android:name=".services.BootStateListenerService"
-            android:enabled="false">
+            android:enabled="true">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"></action>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.REBOOT" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".receivers.AlarmReceiver" />
+        <receiver
+            android:name=".services.LocationProviderChangedListener"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="android.location.PROVIDERS_CHANGED" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="YOUR VALUE"/>
+            android:value="AIzaSyBJ628dYXDCsRrKamwkYK4lijGgRLaWs4Q"/>
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
