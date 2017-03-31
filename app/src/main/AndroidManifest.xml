@@ -4,7 +4,6 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
         android:name=".utils.AppGlobals"
@@ -31,8 +30,6 @@
                 <action android:name="android.intent.action.REBOOT" />
             </intent-filter>
         </receiver>
-
-        <receiver android:name=".receivers.AlarmReceiver" />
         <receiver
             android:name=".services.LocationProviderChangedListener"
             android:exported="false" >
