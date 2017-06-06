@@ -5,7 +5,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 
@@ -26,38 +28,45 @@ public class DatabaseHelpers extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void createNewEntry(String username, String latitude, String longitude) {
+    public void createNewEntry(String latitude, String longitude, String timestamp,
+                               String timeAtOnePlace) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(DatabaseConstants.USERNAME, username);
+        // putting the values in the database along with the unique keys
         values.put(DatabaseConstants.LATITUDE, latitude);
         values.put(DatabaseConstants.LONGITUDE, longitude);
+        values.put(DatabaseConstants.TIMESTAMP, timestamp);
+        values.put(DatabaseConstants.TIME_AT_ONE_PLACE, timeAtOnePlace);
         db.insert(DatabaseConstants.TABLE_NAME, null, values);
         db.close();
     }
 
-    public HashMap<String, String> getAllRecords() {
+    public ArrayList<HashMap<String, String>> getRandomRecordFromAllRecords() {
         SQLiteDatabase db = getReadableDatabase();
         String query = "SELECT * FROM "
-                + DatabaseConstants.TABLE_NAME;
+                + DatabaseConstants.TABLE_NAME
+                + " ORDER BY RANDOM()" + " LIMIT 1";
         Cursor cursor = db.rawQuery(query, null);
-        HashMap<String, String> hashMap = new HashMap<>();
+        ArrayList<HashMap<String, String>> userRecords = new ArrayList<>();
         while (cursor.moveToNext()) {
-            int unique_id = cursor.getInt(
-                    cursor.getColumnIndex(DatabaseConstants.ID_COLUMN));
-            String name = cursor.getString(
-                    cursor.getColumnIndex(DatabaseConstants.USERNAME));
+            HashMap<String, String> hashMap = new HashMap<>();
             String latitude = cursor.getString(
                     cursor.getColumnIndex(DatabaseConstants.LATITUDE));
             String longitude = cursor.getString(
                     cursor.getColumnIndex(DatabaseConstants.LONGITUDE));
-            hashMap.put("unique_id", String.valueOf(unique_id));
-            hashMap.put("username", name);
-            hashMap.put("latitude", latitude);
-            hashMap.put("longitude", longitude);
+            String timestamp = cursor.getString(
+                    cursor.getColumnIndex(DatabaseConstants.TIMESTAMP));
+            String timeAtOnePlace = cursor.getString(
+                    cursor.getColumnIndex(DatabaseConstants.TIME_AT_ONE_PLACE));
+            hashMap.put(DatabaseConstants.LATITUDE, latitude);
+            hashMap.put(DatabaseConstants.LONGITUDE, longitude);
+            hashMap.put(DatabaseConstants.TIMESTAMP, timestamp);
+            hashMap.put(DatabaseConstants.TIME_AT_ONE_PLACE, timeAtOnePlace);
+
+            userRecords.add(hashMap);
         }
         db.close();
         cursor.close();
-        return hashMap;
+        return userRecords;
     }
 }

@@ -33,8 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:textSize="16dp"
-            android:textColor="#ffffff"
-            android:text="fi8er1@gmail.com"/>
+            android:textColor="#ffffff"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -49,24 +48,35 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="14dp"
-                android:textColor="#ffffff"
-                android:text="Correct Answers: 4/10"/>
+                android:textColor="#ffffff"/>
 
             <TextView
                 android:id="@+id/tv_results_time_taken"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="14dp"
-                android:textColor="#ffffff"
-                android:text="Time Taken: 11 Minutes - 34 Seconds"/>
+                android:textColor="#ffffff"/>
 
             <TextView
                 android:id="@+id/tv_results_taken_by_adversary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="14dp"
-                android:textColor="#ffffff"
-                android:text="Taken by Adversary: False"/>
+                android:textColor="#ffffff"/>
+
+            <TextView
+                android:id="@+id/tv_results_adversary_correct_answers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14dp"
+                android:textColor="#ffffff"/>
+
+            <TextView
+                android:id="@+id/tv_results_time_taken_by_adversary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14dp"
+                android:textColor="#ffffff"/>
 
         </LinearLayout>
     </LinearLayout>
