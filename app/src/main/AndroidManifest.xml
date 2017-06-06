@@ -34,7 +34,7 @@
             android:name=".services.LocationProviderChangedListener"
             android:exported="false" >
             <intent-filter>
-                <action android:name="android.location.PROVIDERS_CHANGED" />
+                <action android:name="android.location.PROVIDERS_CHANGE" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>

@@ -37,6 +37,9 @@ public class LocationService extends Service implements
     private DatabaseHelpers mDatabaseHelpers;
     private Location mPreviousLocation;
     private long timeStayedAtOnePlace;
+    private double latitude;
+    private double longitude;
+    private static final int FIVE_HOURS_IN_MILLIS = 3600000;
 
     private final class ServiceHandler extends Handler {
         public ServiceHandler(Looper looper) {
@@ -70,14 +73,14 @@ public class LocationService extends Service implements
 
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-//        mLocationRequest.setSmallestDisplacement(100);
+        mLocationRequest.setInterval(10000); // in milliseconds
+        mLocationRequest.setFastestInterval(5000);// in milliseconds
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setSmallestDisplacement(10);// in meters
     }
 
     private String getCurrentTimeStamp() {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-HH-mm");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm a");
         String format = simpleDateFormat.format(new Date());
         return format;
     }
@@ -107,6 +110,8 @@ public class LocationService extends Service implements
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i("Location Service", "Started");
         buildGoogleApiClient();
+        AppGlobals.setLocationServiceStarted(true);
+        // if user kills the application start the service again
         return START_STICKY;
     }
 
@@ -120,36 +125,41 @@ public class LocationService extends Service implements
     public void onDestroy() {
         // The service is no longer used and is being destroyed
         stopLocationUpdates();
+        AppGlobals.setLocationServiceStarted(false);
     }
 
     @Override
     public void onLocationChanged(Location location) {
-
         long systemTimeInMillis = System.currentTimeMillis();
-        if (systemTimeInMillis > AppGlobals.getAlarmTime()) {
-            Helpers.buildNotification("TEST");
+        // if system time is greater than the notification time show the notification
+        if (systemTimeInMillis > AppGlobals.getNotificationTime()) {
+            Helpers.buildNotification("We have now 2 weeks of your data");
+            // stop the service after notification
             stopSelf();
+
+            // TODO skip the entry if user has stayed on a location for more than one hour
         } else if (mPreviousLocation != null) {
+
             long prevTime = mPreviousLocation.getTime();
             long currentTime = location.getTime();
 
             timeStayedAtOnePlace = currentTime - prevTime;
-        }
 
+            latitude = mPreviousLocation.getLatitude();
+            longitude = mPreviousLocation.getLongitude();
+
+            if (timeStayedAtOnePlace < FIVE_HOURS_IN_MILLIS) {
+
+                String latitudeAsString = String.valueOf(latitude);
+                String longitudeAsString = String.valueOf(longitude);
+                String timeAtOnePlaceAsString = String.valueOf(timeStayedAtOnePlace);
+
+                mDatabaseHelpers.createNewEntry(latitudeAsString, longitudeAsString, getCurrentTimeStamp(),
+                        timeAtOnePlaceAsString);
+            }
+        }
         mPreviousLocation = location;
 
-        double latitude = location.getLatitude();
-        double longitude = location.getLongitude();
-
-        String latitudeAsString = String.valueOf(latitude);
-        String longitudeAsString = String.valueOf(longitude);
-        String timeAtOnePlaceAsString = String.valueOf(timeStayedAtOnePlace);
-
-//        System.out.println(location.getLatitude());
-//        System.out.println(location.getLongitude());
-//        System.out.println(getCurrentTimeStamp());
-
-        mDatabaseHelpers.createNewEntry(latitudeAsString, longitudeAsString, getCurrentTimeStamp(), timeAtOnePlaceAsString);
     }
     @Override
     public void onConnected(@Nullable Bundle bundle) {

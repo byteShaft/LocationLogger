@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
 import com.byteshaft.locationlogger.utils.AppGlobals;
+import com.byteshaft.locationlogger.utils.DatabaseHelpers;
 import com.byteshaft.locationlogger.utils.Helpers;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -37,16 +38,13 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
-/**
- * Created by fi8er1 on 18/03/2017.
- */
+import java.util.concurrent.TimeUnit;
 
 public class QuestionnaireFragment extends Fragment implements View.OnClickListener {
 
     int questionCount;
     public static boolean isQuestionnaireFragmentOpen;
-    public static String mapLocationPoint;
+    public static LatLng answerLatLng;
     Marker mapLocationPointMarker;
     Button btnQuestionnaireFragmentWithdraw;
     Button btnQuestionnaireFragmentRemove;
@@ -65,25 +63,42 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     View baseViewQuestionnaireFragment;
     EditText etMapSearch;
     boolean simpleMapView = true;
+    public static boolean adversaryMode;
     private Animation animLayoutMapSearchBarFadeOut;
     private Animation animLayoutMapSearchBarFadeIn;
     private static GoogleMap mMap = null;
     private static LatLng currentLatLngAuto;
+    private DatabaseHelpers mDatabaseHelpers;
+    private static int correctAnswerCounter = 0;
+    long systemTimeInMillisBeforeTest;
+    long systemTimeInMillisAfterTest;
+    long systemTimeInMillisBeforeTestAdversary;
+    long systemTimeInMillisAfterTestAdversary;
 
+    // getting user's location from GoogleMapsApi
     private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
         @Override
         public void onMyLocationChange(Location location) {
             currentLatLngAuto = new LatLng(location.getLatitude(), location.getLongitude());
             if (!cameraAnimatedToCurrentLocation) {
                 cameraAnimatedToCurrentLocation = true;
+                // animating camera by giving it the coordinates
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLngAuto, 15.0f));
             }
         }
     };
 
-    public static final Runnable adversaryRetake = new Runnable() {
+    public final Runnable adversaryRetake = new Runnable() {
         public void run() {
-
+            AppGlobals.putAppStatus(3);
+            systemTimeInMillisBeforeTestAdversary = System.currentTimeMillis();
+            adversaryMode = true;
+            // resetting correct answer counter before adversary retake
+            correctAnswerCounter = 0;
+            questionCount = 0;
+            tvQuestionnaireBottomOverlayOne.setText("1/10");
+            tvQuestionnaireBottomOverlayTwo.setText("Where was i on "
+            +mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).get("timestamp"));
         }
     };
 
@@ -97,12 +112,27 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         baseViewQuestionnaireFragment = inflater.inflate(R.layout.fragment_questionnaire, container, false);
+        // dismiss notification on start of this fragment
+        Helpers.dismissNotification();
+
+        // getting current system time before test
+        systemTimeInMillisBeforeTest = System.currentTimeMillis();
 
         animLayoutMapSearchBarFadeOut = AnimationUtils.loadAnimation(getActivity(), android.R.anim.fade_out);
         animLayoutMapSearchBarFadeIn = AnimationUtils.loadAnimation(getActivity(), android.R.anim.fade_in);
 
+        mDatabaseHelpers = new DatabaseHelpers(getActivity());
+
         tvQuestionnaireBottomOverlayOne = (TextView) baseViewQuestionnaireFragment.findViewById(R.id.tv_map_bottom_overlay_one);
         tvQuestionnaireBottomOverlayTwo = (TextView) baseViewQuestionnaireFragment.findViewById(R.id.tv_map_bottom_overlay_two);
+
+        // setting texts according to the screen
+        if (adversaryMode) {
+            tvQuestionnaireBottomOverlayTwo.setText("Where was I on " + mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).get("timestamp"));
+        } else {
+            tvQuestionnaireBottomOverlayTwo.setText("Where were you on " + mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).get("timestamp"));
+        }
+
         tvQuestionnaireBottomOverlayThree = (TextView) baseViewQuestionnaireFragment.findViewById(R.id.tv_map_bottom_overlay_three);
 
         llQuestionnaireBottomOverlayThree = (LinearLayout) baseViewQuestionnaireFragment.findViewById(R.id.ll_map_bottom_overlay_three);
@@ -119,6 +149,9 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
 
         btnQuestionnaireFragmentNext = (Button) baseViewQuestionnaireFragment.findViewById(R.id.btn_map_bottom_overlay_next);
         btnQuestionnaireFragmentNext.setOnClickListener(this);
+
+        // disabling this button for now so that user cannot click on it without marking his location
+        // on google maps
         btnQuestionnaireFragmentNext.setEnabled(false);
         btnQuestionnaireFragmentNext.setAlpha(0.5f);
 
@@ -131,18 +164,28 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
 
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map_for_questionnaire);
+
+        // getting google maps from map fragment
         mapFragment.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap googleMap) {
+                // if map is ready assign google maps object mMap with the parameters of this override
+                // method
                 mMap = googleMap;
+
+                // move camera to a pre-defined location
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(43.653109, -79.388366), 4.0f));
 //                    Helpers.showProgressDialog(MainActivity.getInstance(), "Acquiring current location");
+
+                // this method enables users to get his/her location on google maps
                     mMap.setMyLocationEnabled(true);
+                // removing the pre-defined current location button from google maps
                     mMap.getUiSettings().setMyLocationButtonEnabled(false);
                     mMap.getUiSettings().setCompassEnabled(true);
                     mMap.setOnMyLocationChangeListener(myLocationChangeListener);
                     mMap.getUiSettings().setMapToolbarEnabled(false);
 
+                // this method detects whenever user long presses on maps
                         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                             @Override
                             public void onMapLongClick(final LatLng latLng) {
@@ -150,9 +193,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                                     setSearchBarVisibility(false);
                                 }
                                 if (!mapMarkerAdded) {
-                                    double latitude = latLng.latitude;
-                                    double longitude = latLng.longitude;
-                                    mapLocationPoint = latitude + "," + longitude;
+                                    answerLatLng = latLng;
                                     mapLocationPointMarker = mMap.addMarker(new MarkerOptions().position(latLng));
                                     mapMarkerAdded = true;
                                     llQuestionnaireBottomOverlayThree.setVisibility(View.GONE);
@@ -257,10 +298,11 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                 break;
             case R.id.btn_map_bottom_overlay_next:
                 if (mapMarkerAdded) {
-                    if (questionCount < 3) {
+                    mapLocationPointMarker.remove();
+                    mapMarkerAdded = false;
+                    if (questionCount < 9) {
+                        // incrementing question count
                         questionCount++;
-                        mapLocationPointMarker.remove();
-                        mapMarkerAdded = false;
                         llQuestionnaireBottomOverlayThree.setVisibility(View.GONE);
                         new Handler().postDelayed(new Runnable() {
                             @Override
@@ -274,14 +316,54 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                         btnQuestionnaireFragmentRemove.setEnabled(false);
                         btnQuestionnaireFragmentRemove.setAlpha(0.5f);
                         tvQuestionnaireBottomOverlayOne.setText(questionCount + 1 + "/10");
+                        if (adversaryMode) {
+                            tvQuestionnaireBottomOverlayTwo.setText("Where was I on "
+                                    + mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).get("timestamp"));
+                        } else {
+                            tvQuestionnaireBottomOverlayTwo.setText("Where were you on "
+                                    + mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).get("timestamp"));
+                        }
+
                     } else {
-                        if (AppGlobals.isAdversaryAdded()) {
+
+                        if (!adversaryMode) {
+                            systemTimeInMillisAfterTest = System.currentTimeMillis();
+                            // calculating test time taken by the user
+                            long timeTakenForTestInMillis = systemTimeInMillisAfterTest - systemTimeInMillisBeforeTest;
+                            String timeTakenForTestByUser = Helpers.getTimeTakenInMinutesAndSeconds(timeTakenForTestInMillis);
+                            // saving test time taken by the user in database
+                            AppGlobals.putTimeTakenForTestByUser(timeTakenForTestByUser);
+                            // saving correct answers in database
+                            AppGlobals.putUserTestResults(correctAnswerCounter + "/10");
+                            AppGlobals.testTakenByAdversary(false);
+                            correctAnswerCounter = 0;
+                        } else {
+                            systemTimeInMillisAfterTestAdversary = System.currentTimeMillis();
+                            // calculating time taken by the adversary for test
+                            long timeTakenForTestInMillisAdv = systemTimeInMillisAfterTestAdversary - systemTimeInMillisBeforeTestAdversary;
+                            String timeTakenForTestByAdv = Helpers.getTimeTakenInMinutesAndSeconds(timeTakenForTestInMillisAdv);
+                            // saving adversary test time in database
+                            AppGlobals.putTimeTakenForTestByAdversary(timeTakenForTestByAdv);
+                            AppGlobals.testTakenByAdversary(true);
+                            correctAnswerCounter = 0;
+                        }
+                        if (AppGlobals.isAdversaryAdded() && !adversaryMode) {
                             Helpers.AlertDialogWithPositiveNegativeFunctions(getActivity(), "Adversary Retake",
                                     "You have an adversary added. Do you want the adversary to take the test as well?", "Yes", "No",
                                     adversaryRetake, proceedWithoutAdversary);
                         } else {
                             Helpers.loadFragment(MainActivity.fragmentManager, new ExitSurveyFragment(), false, null);
+                            AppGlobals.putAppStatus(4);
                         }
+                    }
+
+                    // getting latitude and longitude and converting them to latlng object in order to
+                    // compare results
+                    LatLng actualLatLng = new LatLng(Double.parseDouble(mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).
+                            get("latitude")), Double.parseDouble(mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).
+                            get("longitude")));
+                    if (Helpers.isAnswerLocationInVicinityOfActualLocation(answerLatLng, actualLatLng)) {
+                        correctAnswerCounter++;
                     }
                 }
                 break;
@@ -326,10 +408,12 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                 break;
             case R.id.btn_map_type:
                 if (simpleMapView) {
+                    // simple map type
                     mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
                     btnQuestionnaireFragmentMapType.setImageResource(R.drawable.selector_map_type_simple);
                     simpleMapView = false;
                 } else {
+                    // satellite map type
                     mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
                     btnQuestionnaireFragmentMapType.setImageResource(R.drawable.selector_map_type_satellite);
                     simpleMapView = true;
@@ -360,10 +444,13 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         });
     }
 
+
+
     @Override
     public void onPause() {
         super.onPause();
         isQuestionnaireFragmentOpen = false;
+        correctAnswerCounter = 0;
     }
 
     @Override

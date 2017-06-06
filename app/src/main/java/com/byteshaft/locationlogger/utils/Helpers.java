@@ -2,7 +2,6 @@ package com.byteshaft.locationlogger.utils;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -12,11 +11,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
+import java.text.SimpleDateFormat;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
@@ -25,18 +23,22 @@ import android.support.v4.app.NotificationCompat;
 
 import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
+import com.byteshaft.locationlogger.fragments.QuestionnaireFragment;
 import com.byteshaft.locationlogger.fragments.WelcomeFragment;
-import com.byteshaft.locationlogger.receivers.AlarmReceiver;
 import com.byteshaft.locationlogger.services.LocationService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.SphericalUtil;
 
-/**
- * Created by fi8er1 on 18/03/2017.
- */
+import java.util.Date;
+
+import static android.content.Context.NOTIFICATION_SERVICE;
+import static com.byteshaft.locationlogger.MainActivity.fragmentManager;
 
 public class Helpers {
+
+    private static NotificationManager mNotifyMgr;
 
     public static final Runnable exitApp = new Runnable() {
         public void run() {
@@ -45,13 +47,17 @@ public class Helpers {
         }
     };
 
+    // setting up the app status and stopping location services
     public static final Runnable withdraw = new Runnable() {
         public void run() {
             AppGlobals.putAppStatus(0);
             AppGlobals.putAdversaryAdded(false);
-            Helpers.loadFragment(MainActivity.fragmentManager, new WelcomeFragment(), true, null);
+            Helpers.loadFragment(fragmentManager, new WelcomeFragment(), true, null);
             Intent locationServiceIntent = new Intent(MainActivity.getInstance(), LocationService.class);
             MainActivity.getInstance().stopService(locationServiceIntent);
+            Helpers.dismissNotification();
+            AppGlobals.putUserTestResults(null);
+            AppGlobals.putAdversaryTestResults(null);
         }
     };
 
@@ -73,38 +79,39 @@ public class Helpers {
         }
     }
 
+    // heads up notification
     public static void buildNotification(String content) {
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AppGlobals.getContext())
-                .setSmallIcon(R.mipmap.ic_launcher_round)
-                .setContentTitle(content)
-                .setContentText("Scheduled Notification");
-        NotificationManager notificationManager = (NotificationManager)
-                AppGlobals.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(1 , mBuilder.build());
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(AppGlobals.getContext())
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle("Location Logger")
+                        .setContentText(content);
+
+        // defining notification's on click
+        Intent resultIntent = new Intent(AppGlobals.getContext(), MainActivity.class);
+        PendingIntent resultPendingIntent =
+                PendingIntent.getActivity(
+                        AppGlobals.getContext(),
+                        0,
+                        resultIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+        mNotifyMgr = (NotificationManager) AppGlobals.getContext().getSystemService(NOTIFICATION_SERVICE);
+        mBuilder.setAutoCancel(true);
+        mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        mBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
+        mNotifyMgr.notify(1, mBuilder.build());
+        AppGlobals.putAppStatus(2);
+        if (MainActivity.isMainActivityRunning) {
+            Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false, null);
+        }
     }
 
-    public static void scheduleNotification(Notification notification, long delay) {
-
-        Intent notificationIntent = new Intent(AppGlobals.getContext(), AlarmReceiver.class);
-        notificationIntent.putExtra(AlarmReceiver.NOTIFICATION_ID, 1);
-        notificationIntent.putExtra(AlarmReceiver.NOTIFICATION, notification);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(AppGlobals.getContext(), 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        long futureInMillis = SystemClock.elapsedRealtime() + delay;
-        AlarmManager alarmManager = (AlarmManager)AppGlobals.getContext().getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent);
-        AppGlobals.putAlarmTime(futureInMillis);
-        System.out.println("Alarm time before: " + futureInMillis);
-    }
-
-    public static void scheduleNotificationAfterReboot(Notification notification, long delay) {
-        Intent notificationIntent = new Intent(AppGlobals.getContext(), AlarmReceiver.class);
-        notificationIntent.putExtra(AlarmReceiver.NOTIFICATION_ID, 1);
-        notificationIntent.putExtra(AlarmReceiver.NOTIFICATION, notification);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(AppGlobals.getContext(), 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        AlarmManager alarmManager = (AlarmManager)AppGlobals.getContext().getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, delay, pendingIntent);
+    public static void dismissNotification() {
+        if (mNotifyMgr != null) {
+            mNotifyMgr.cancel(1);
+        }
     }
 
     public static Runnable openPlayServicesInstallation = new Runnable() {
@@ -155,6 +162,7 @@ public class Helpers {
                                     String fragmentName) {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         if (withdraw) {
+            // loading framgment with custom animation
             transaction.setCustomAnimations(R.anim.anim_transition_fragment_slide_left_enter, R.anim.anim_transition_fragment_slide_right_exit,
                     R.anim.anim_transition_fragment_slide_right_enter, R.anim.anim_transition_fragment_slide_left_exit);
         } else {
@@ -283,13 +291,27 @@ public class Helpers {
 
     public static boolean isAnswerLocationInVicinityOfActualLocation(LatLng answerLatLng, LatLng actualLatLng) {
         float vicinityThreshold = 500;
-        Location answerLocation = new Location(answerLatLng.toString());
-        Location actualLocation = new Location(actualLatLng.toString());
-        float distanceInMeters = answerLocation.distanceTo(actualLocation);
-        if (distanceInMeters < vicinityThreshold) {
-            return true;
-        } else {
-            return false;
-        }
+        double distance = SphericalUtil.computeDistanceBetween(answerLatLng, actualLatLng);
+        int distanceInMeters = (int) distance;
+        return distanceInMeters < vicinityThreshold;
+    }
+
+    public static long getRemainingTimeInDays(long remainingTimeInMillis) {
+        long seconds = remainingTimeInMillis / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        long days = hours / 24;
+        return days;
+    }
+
+    public static long getRemainingTimeInHours(long remainingTimeInMillis) {
+        long seconds = remainingTimeInMillis / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        return hours;
+    }
+
+    public static String getTimeTakenInMinutesAndSeconds(long timeInMillis) {
+        return (new SimpleDateFormat("mm:ss")).format(new Date(timeInMillis));
     }
 }

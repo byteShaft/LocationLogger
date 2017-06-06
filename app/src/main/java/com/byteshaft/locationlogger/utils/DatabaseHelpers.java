@@ -13,9 +13,6 @@ import java.util.HashMap;
 
 public class DatabaseHelpers extends SQLiteOpenHelper {
 
-    public static final String TABLE_NAME = "location_table";
-
-
     public DatabaseHelpers(Context context) {
         super(context, DatabaseConstants.DATABASE_NAME, null, DatabaseConstants.DATABASE_VERSION);
     }
@@ -31,9 +28,11 @@ public class DatabaseHelpers extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void createNewEntry(String latitude, String longitude, String timestamp, String timeAtOnePlace) {
+    public void createNewEntry(String latitude, String longitude, String timestamp,
+                               String timeAtOnePlace) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
+        // putting the values in the database along with the unique keys
         values.put(DatabaseConstants.LATITUDE, latitude);
         values.put(DatabaseConstants.LONGITUDE, longitude);
         values.put(DatabaseConstants.TIMESTAMP, timestamp);
@@ -57,11 +56,13 @@ public class DatabaseHelpers extends SQLiteOpenHelper {
                     cursor.getColumnIndex(DatabaseConstants.LONGITUDE));
             String timestamp = cursor.getString(
                     cursor.getColumnIndex(DatabaseConstants.TIMESTAMP));
-            String timeAtOnePlace = cursor.getString(cursor.getColumnIndex(DatabaseConstants.TIME_AT_ONE_PLACE));
+            String timeAtOnePlace = cursor.getString(
+                    cursor.getColumnIndex(DatabaseConstants.TIME_AT_ONE_PLACE));
             hashMap.put(DatabaseConstants.LATITUDE, latitude);
             hashMap.put(DatabaseConstants.LONGITUDE, longitude);
             hashMap.put(DatabaseConstants.TIMESTAMP, timestamp);
             hashMap.put(DatabaseConstants.TIME_AT_ONE_PLACE, timeAtOnePlace);
+
             userRecords.add(hashMap);
         }
         db.close();
