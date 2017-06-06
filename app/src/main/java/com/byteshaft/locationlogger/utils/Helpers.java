@@ -30,17 +30,9 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class Helpers {
 
-    public static final Runnable exitApp = new Runnable() {
-        public void run() {
-            MainActivity.getInstance().finish();
-            System.exit(0);
-        }
-    };
-
     public static final Runnable withdraw = new Runnable() {
         public void run() {
             AppGlobals.putAppStatus(0);
-            AppGlobals.putAdversaryAdded(false);
             Helpers.loadFragment(MainActivity.fragmentManager, new WelcomeFragment(), true, null);
 
 //            getActivity().stopService(locationServiceIntent);

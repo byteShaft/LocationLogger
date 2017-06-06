@@ -89,6 +89,8 @@ public class EntrySurveyFragment extends Fragment {
                         AppGlobals.putAdversaryName(etEntryFragmentAdversaryName.getText().toString());
                         AppGlobals.putRelationWithAdversary(spinnerEntryFragmentRelationWithAdversary.getSelectedItem().toString());
                         AppGlobals.putAdversaryAdded(true);
+                    } else {
+                        AppGlobals.putAdversaryAdded(false);
                     }
                     Helpers.loadFragment(MainActivity.fragmentManager, new WaitingFragment(), false, null);
                     new Handler().postDelayed(new Runnable() {

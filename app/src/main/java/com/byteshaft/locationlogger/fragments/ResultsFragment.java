@@ -35,7 +35,6 @@ public class ResultsFragment extends Fragment implements View.OnClickListener {
         return baseViewResultsFragment;
     }
 
-
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -44,10 +43,8 @@ public class ResultsFragment extends Fragment implements View.OnClickListener {
                 break;
             case R.id.btn_results_finish:
                 AppGlobals.putAppStatus(0);
-                AppGlobals.putAdversaryAdded(false);
                 getActivity().finish();
                 break;
-
         }
     }
 
