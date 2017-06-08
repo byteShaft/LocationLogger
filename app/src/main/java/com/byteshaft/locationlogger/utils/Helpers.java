@@ -3,12 +3,15 @@ package com.byteshaft.locationlogger.utils;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
+import java.text.SimpleDateFormat;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
@@ -16,26 +19,49 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NotificationCompat;
 
 import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
+import com.byteshaft.locationlogger.fragments.AuthenticationFragment;
+import com.byteshaft.locationlogger.fragments.QuestionnaireFragment;
 import com.byteshaft.locationlogger.fragments.WelcomeFragment;
+import com.byteshaft.locationlogger.services.LocationService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.SphericalUtil;
 
-/**
- * Created by fi8er1 on 18/03/2017.
- */
+import java.util.ArrayList;
+import java.util.Date;
+
+import static android.content.Context.NOTIFICATION_SERVICE;
+import static com.byteshaft.locationlogger.MainActivity.fragmentManager;
 
 public class Helpers {
 
+    public static String[] accessCodes = {"123456", "abcdef", "yolo"};
+
+    private static NotificationManager mNotifyMgr;
+
+    public static final Runnable exitApp = new Runnable() {
+        public void run() {
+            MainActivity.getInstance().finish();
+            System.exit(0);
+        }
+    };
+
+    // setting up the app status and stopping location services
     public static final Runnable withdraw = new Runnable() {
         public void run() {
             AppGlobals.putAppStatus(0);
-            Helpers.loadFragment(MainActivity.fragmentManager, new WelcomeFragment(), true, null);
-
-//            getActivity().stopService(locationServiceIntent);
+            AppGlobals.putAdversaryAdded(false);
+            Helpers.loadFragment(fragmentManager, new WelcomeFragment(), true, null);
+            Intent locationServiceIntent = new Intent(MainActivity.getInstance(), LocationService.class);
+            MainActivity.getInstance().stopService(locationServiceIntent);
+            Helpers.dismissNotification();
+            AppGlobals.putUserTestResults(null);
+            AppGlobals.putAdversaryTestResults(null);
         }
     };
 
@@ -54,6 +80,41 @@ public class Helpers {
     public static void dismissProgressDialog() {
         if (progressDialog != null) {
             progressDialog.dismiss();
+        }
+    }
+
+    // heads up notification
+    public static void buildNotification(String content) {
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(AppGlobals.getContext())
+                        .setSmallIcon(R.mipmap.ic_launcher_round)
+                        .setContentTitle("Location Logger")
+                        .setContentText(content);
+
+        // defining notification's on click
+        Intent resultIntent = new Intent(AppGlobals.getContext(), MainActivity.class);
+        PendingIntent resultPendingIntent =
+                PendingIntent.getActivity(
+                        AppGlobals.getContext(),
+                        0,
+                        resultIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+        mNotifyMgr = (NotificationManager) AppGlobals.getContext().getSystemService(NOTIFICATION_SERVICE);
+        mBuilder.setAutoCancel(true);
+        mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        mBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
+        mNotifyMgr.notify(1, mBuilder.build());
+        AppGlobals.putAppStatus(2);
+        if (MainActivity.isMainActivityRunning) {
+            Helpers.loadFragment(fragmentManager, new AuthenticationFragment(), false, null);
+        }
+    }
+
+    public static void dismissNotification() {
+        if (mNotifyMgr != null) {
+            mNotifyMgr.cancel(1);
         }
     }
 
@@ -105,6 +166,7 @@ public class Helpers {
                                     String fragmentName) {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         if (withdraw) {
+            // loading framgment with custom animation
             transaction.setCustomAnimations(R.anim.anim_transition_fragment_slide_left_enter, R.anim.anim_transition_fragment_slide_right_exit,
                     R.anim.anim_transition_fragment_slide_right_enter, R.anim.anim_transition_fragment_slide_left_exit);
         } else {
@@ -114,6 +176,9 @@ public class Helpers {
         if (fragmentName != null) {
             transaction.replace(R.id.container_main, fragment).addToBackStack(fragmentName);
         } else {
+            if (fragmentManager.getBackStackEntryCount() > 0) {
+                MainActivity.fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            }
             transaction.replace(R.id.container_main, fragment);
         }
         transaction.commit();
@@ -233,13 +298,36 @@ public class Helpers {
 
     public static boolean isAnswerLocationInVicinityOfActualLocation(LatLng answerLatLng, LatLng actualLatLng) {
         float vicinityThreshold = 500;
-        Location answerLocation = new Location(answerLatLng.toString());
-        Location actualLocation = new Location(actualLatLng.toString());
-        float distanceInMeters = answerLocation.distanceTo(actualLocation);
-        if (distanceInMeters < vicinityThreshold) {
-            return true;
-        } else {
-            return false;
+        double distance = SphericalUtil.computeDistanceBetween(answerLatLng, actualLatLng);
+        int distanceInMeters = (int) distance;
+        return distanceInMeters < vicinityThreshold;
+    }
+
+    public static long getRemainingTimeInDays(long remainingTimeInMillis) {
+        long seconds = remainingTimeInMillis / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        long days = hours / 24;
+        return days;
+    }
+
+    public static long getRemainingTimeInHours(long remainingTimeInMillis) {
+        long seconds = remainingTimeInMillis / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        return hours;
+    }
+
+    public static String getTimeTakenInMinutesAndSeconds(long timeInMillis) {
+        return (new SimpleDateFormat("mm:ss")).format(new Date(timeInMillis));
+    }
+
+    public static boolean isAccessCodeValid(String input) {
+        for (String accessCode : accessCodes) {
+            if (input.equals(accessCode)) {
+                return true;
+            }
         }
+        return false;
     }
 }

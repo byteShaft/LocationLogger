@@ -15,12 +15,17 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
+import com.byteshaft.locationlogger.utils.AppGlobals;
 import com.byteshaft.locationlogger.utils.DatabaseHelpers;
+import com.byteshaft.locationlogger.utils.Helpers;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class LocationService extends Service implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -30,6 +35,11 @@ public class LocationService extends Service implements
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private DatabaseHelpers mDatabaseHelpers;
+    private Location mPreviousLocation;
+    private long timeStayedAtOnePlace;
+    private double latitude;
+    private double longitude;
+    private static final int FIVE_HOURS_IN_MILLIS = 3600000;
 
     private final class ServiceHandler extends Handler {
         public ServiceHandler(Looper looper) {
@@ -63,10 +73,16 @@ public class LocationService extends Service implements
 
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setInterval(10000); // in milliseconds
+        mLocationRequest.setFastestInterval(5000);// in milliseconds
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-//        mLocationRequest.setSmallestDisplacement(100);
+        mLocationRequest.setSmallestDisplacement(10);// in meters
+    }
+
+    private String getCurrentTimeStamp() {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm a");
+        String format = simpleDateFormat.format(new Date());
+        return format;
     }
 
     public void startLocationUpdates() {
@@ -94,6 +110,8 @@ public class LocationService extends Service implements
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i("Location Service", "Started");
         buildGoogleApiClient();
+        AppGlobals.setLocationServiceStarted(true);
+        // if user kills the application start the service again
         return START_STICKY;
     }
 
@@ -107,18 +125,41 @@ public class LocationService extends Service implements
     public void onDestroy() {
         // The service is no longer used and is being destroyed
         stopLocationUpdates();
+        AppGlobals.setLocationServiceStarted(false);
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        double latitude = location.getLatitude();
-        double longitude = location.getLongitude();
-        String latitudeAsString = String.valueOf(latitude);
-        String longitudeAsString = String.valueOf(longitude);
+        long systemTimeInMillis = System.currentTimeMillis();
+        // if system time is greater than the notification time show the notification
+        if (systemTimeInMillis > AppGlobals.getNotificationTime()) {
+            Helpers.buildNotification("We have now 2 weeks of your data");
+            // stop the service after notification
+            stopSelf();
 
-//        System.out.println(location.getLatitude());
-//        System.out.println(location.getLongitude());
-//        mDatabaseHelpers.createNewEntry("Test", latitudeAsString, longitudeAsString);
+            // TODO skip the entry if user has stayed on a location for more than one hour
+        } else if (mPreviousLocation != null) {
+
+            long prevTime = mPreviousLocation.getTime();
+            long currentTime = location.getTime();
+
+            timeStayedAtOnePlace = currentTime - prevTime;
+
+            latitude = mPreviousLocation.getLatitude();
+            longitude = mPreviousLocation.getLongitude();
+
+            if (timeStayedAtOnePlace < FIVE_HOURS_IN_MILLIS) {
+
+                String latitudeAsString = String.valueOf(latitude);
+                String longitudeAsString = String.valueOf(longitude);
+                String timeAtOnePlaceAsString = String.valueOf(timeStayedAtOnePlace);
+
+                mDatabaseHelpers.createNewEntry(latitudeAsString, longitudeAsString, getCurrentTimeStamp(),
+                        timeAtOnePlaceAsString);
+            }
+        }
+        mPreviousLocation = location;
+
     }
     @Override
     public void onConnected(@Nullable Bundle bundle) {

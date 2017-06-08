@@ -20,10 +20,6 @@ import com.byteshaft.locationlogger.utils.Helpers;
 import static com.byteshaft.locationlogger.utils.Helpers.openLocationServiceSettings;
 import static com.byteshaft.locationlogger.utils.Helpers.recheckLocationServiceStatus;
 
-/**
- * Created by fi8er1 on 18/03/2017.
- */
-
 public class WelcomeFragment extends Fragment {
 
     View baseViewWelcomeFragment;
@@ -50,8 +46,12 @@ public class WelcomeFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if (b) {
+                    // checking permission for devices on Marshmallow or greater and requesting them
+                    // if not already given
                     if (Helpers.hasPermissionsForDevicesAboveMarshmallowIfNotRequestPermissions(getActivity())) {
+                        // checking if any service of location is turned on
                         if (!Helpers.isAnyLocationServiceAvailable()) {
+                            // if not then show an alert
                             Helpers.AlertDialogWithPositiveNegativeNeutralFunctions(MainActivity.getInstance(),
                                     "Location Service disabled", "Enable device GPS to continue", "Settings", "ReCheck", "Dismiss",
                                     openLocationServiceSettings, recheckLocationServiceStatus);
@@ -75,10 +75,14 @@ public class WelcomeFragment extends Fragment {
                         } else {
                             Helpers.loadFragment(MainActivity.fragmentManager, new InstructionsFragment(), false, "Instructions");
                             AppGlobals.putUserName(sEmail);
+                            AppGlobals.putFullName(sFullName);
                         }
                     } else {
+                        // if permission's denied make a toast
                         Toast.makeText(getActivity(), "Location permission denied", Toast.LENGTH_SHORT).show();
                     }
+                } else {
+                    Helpers.loadFragment(MainActivity.fragmentManager, new ExitSurveyFragment(), false, "ExitSurvey");
                 }
             }
         });
@@ -86,12 +90,16 @@ public class WelcomeFragment extends Fragment {
         return baseViewWelcomeFragment;
     }
 
+    // this method checks for valid user input
     private boolean validateLoginInfo() {
         boolean valid = true;
 
+        // trim blank space and check if it's still empty
         if (sEmail.trim().isEmpty()) {
             etLoginEmail.setError("Empty");
             valid = false;
+
+            // if email address is not empty then check if it's valid or not
         } else if (!sEmail.trim().isEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(sEmail).matches()) {
             etLoginEmail.setError("Invalid E-Mail");
             valid = false;
@@ -110,7 +118,7 @@ public class WelcomeFragment extends Fragment {
         }
 
         if (valid && !cbLoginTerms.isChecked()) {
-            Toast.makeText(getActivity(), "Check terms of service", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "Please Agree to our Terms of Service before continuing", Toast.LENGTH_SHORT).show();
             valid = false;
         }
 
