@@ -81,6 +81,8 @@ public class WelcomeFragment extends Fragment {
                         // if permission's denied make a toast
                         Toast.makeText(getActivity(), "Location permission denied", Toast.LENGTH_SHORT).show();
                     }
+                } else {
+                    Helpers.loadFragment(MainActivity.fragmentManager, new ExitSurveyFragment(), false, "ExitSurvey");
                 }
             }
         });

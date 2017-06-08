@@ -53,7 +53,6 @@ public class ResultsFragment extends Fragment implements View.OnClickListener {
         return baseViewResultsFragment;
     }
 
-
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -70,7 +69,6 @@ public class ResultsFragment extends Fragment implements View.OnClickListener {
                 QuestionnaireFragment.adversaryMode = false;
                 getActivity().finish();
                 break;
-
         }
     }
 

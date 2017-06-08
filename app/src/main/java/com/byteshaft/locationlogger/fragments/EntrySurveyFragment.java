@@ -1,7 +1,6 @@
 package com.byteshaft.locationlogger.fragments;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -99,18 +98,14 @@ public class EntrySurveyFragment extends Fragment {
                         AppGlobals.putAdversaryName(etEntryFragmentAdversaryName.getText().toString());
                         AppGlobals.putRelationWithAdversary(spinnerEntryFragmentRelationWithAdversary.getSelectedItem().toString());
                         AppGlobals.putAdversaryAdded(true);
+                    } else {
+                        AppGlobals.putAdversaryAdded(false);
                     }
                     Helpers.loadFragment(MainActivity.fragmentManager, new WaitingFragment(), false, null);
                     // getting system time and adding the time of two weeks in milliseconds in order
                     // to send notification after two weeks
                     long notificationTime = System.currentTimeMillis() + 1209600000;
                     AppGlobals.putNotificationTime(notificationTime);
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            MainActivity.fragmentManager.popBackStack(null, MainActivity.fragmentManager.POP_BACK_STACK_INCLUSIVE);
-                        }
-                    }, 500);
                 }
             }
         });

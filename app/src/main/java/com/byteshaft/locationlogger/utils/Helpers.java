@@ -23,6 +23,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
+import com.byteshaft.locationlogger.fragments.AuthenticationFragment;
 import com.byteshaft.locationlogger.fragments.QuestionnaireFragment;
 import com.byteshaft.locationlogger.fragments.WelcomeFragment;
 import com.byteshaft.locationlogger.services.LocationService;
@@ -31,12 +32,15 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.SphericalUtil;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.byteshaft.locationlogger.MainActivity.fragmentManager;
 
 public class Helpers {
+
+    public static String[] accessCodes = {"123456", "abcdef", "yolo"};
 
     private static NotificationManager mNotifyMgr;
 
@@ -104,7 +108,7 @@ public class Helpers {
         mNotifyMgr.notify(1, mBuilder.build());
         AppGlobals.putAppStatus(2);
         if (MainActivity.isMainActivityRunning) {
-            Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false, null);
+            Helpers.loadFragment(fragmentManager, new AuthenticationFragment(), false, null);
         }
     }
 
@@ -172,6 +176,9 @@ public class Helpers {
         if (fragmentName != null) {
             transaction.replace(R.id.container_main, fragment).addToBackStack(fragmentName);
         } else {
+            if (fragmentManager.getBackStackEntryCount() > 0) {
+                MainActivity.fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            }
             transaction.replace(R.id.container_main, fragment);
         }
         transaction.commit();
@@ -313,5 +320,14 @@ public class Helpers {
 
     public static String getTimeTakenInMinutesAndSeconds(long timeInMillis) {
         return (new SimpleDateFormat("mm:ss")).format(new Date(timeInMillis));
+    }
+
+    public static boolean isAccessCodeValid(String input) {
+        for (String accessCode : accessCodes) {
+            if (input.equals(accessCode)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

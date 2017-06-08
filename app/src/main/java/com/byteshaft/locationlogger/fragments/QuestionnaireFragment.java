@@ -38,7 +38,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 public class QuestionnaireFragment extends Fragment implements View.OnClickListener {
 
@@ -90,7 +89,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
 
     public final Runnable adversaryRetake = new Runnable() {
         public void run() {
-            AppGlobals.putAppStatus(3);
+            AppGlobals.putAppStatus(4);
             systemTimeInMillisBeforeTestAdversary = System.currentTimeMillis();
             adversaryMode = true;
             // resetting correct answer counter before adversary retake
@@ -353,7 +352,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                                     adversaryRetake, proceedWithoutAdversary);
                         } else {
                             Helpers.loadFragment(MainActivity.fragmentManager, new ExitSurveyFragment(), false, null);
-                            AppGlobals.putAppStatus(4);
+                            AppGlobals.putAppStatus(5);
                         }
                     }
 

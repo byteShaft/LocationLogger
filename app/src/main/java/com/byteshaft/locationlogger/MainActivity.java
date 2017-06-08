@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 
+import com.byteshaft.locationlogger.fragments.AuthenticationFragment;
 import com.byteshaft.locationlogger.fragments.ExitSurveyFragment;
 import com.byteshaft.locationlogger.fragments.QuestionnaireFragment;
 import com.byteshaft.locationlogger.fragments.ResultsFragment;
@@ -60,14 +61,16 @@ public class MainActivity extends FragmentActivity {
         } else if (AppGlobals.getAppStatus() == 1) {
             Helpers.loadFragment(fragmentManager, new WaitingFragment(), false, null);
         } else if (AppGlobals.getAppStatus() == 2) {
+            Helpers.loadFragment(fragmentManager, new AuthenticationFragment(), false, null);
+        } else if (AppGlobals.getAppStatus() == 3) {
             QuestionnaireFragment.adversaryMode = false;
             Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false, null);
-        } else if (AppGlobals.getAppStatus() == 3) {
+        } else if (AppGlobals.getAppStatus() == 4) {
             QuestionnaireFragment.adversaryMode = true;
             Helpers.loadFragment(fragmentManager, new QuestionnaireFragment(), false, null);
-        } else if (AppGlobals.getAppStatus() == 4) {
-            Helpers.loadFragment(fragmentManager, new ExitSurveyFragment(), false, null);
         } else if (AppGlobals.getAppStatus() == 5) {
+            Helpers.loadFragment(fragmentManager, new ExitSurveyFragment(), false, null);
+        } else if (AppGlobals.getAppStatus() == 6) {
             Helpers.loadFragment(fragmentManager, new ResultsFragment(), false, null);
         }
     }
