@@ -39,7 +39,7 @@ public class ResultsFragment extends Fragment implements View.OnClickListener {
         // if test is taken by adversary then print it's results otherwise leave them
         if (AppGlobals.isTestTakenByAdversary()) {
             tvResultsTestTakenByAdversary.setText("Taken by Adversary : Yes");
-            tvResultsAdversaryCorrectAnswers.setText("Correct Answers: " + AppGlobals.getAdversaryTestResults());
+            tvResultsAdversaryCorrectAnswers.setText("Adversary Correct Answers: " + AppGlobals.getAdversaryTestResults());
             tvResultsTimeTakenForTestByAdversary.setText("Time Taken: " + AppGlobals.getTimeTakenForTestByAdversary());
         }
         tvResultsTimeTakenForTestByUser.setText("Time taken: " + AppGlobals.getTimeTakenForTestByUser());
@@ -66,6 +66,8 @@ public class ResultsFragment extends Fragment implements View.OnClickListener {
                 AppGlobals.testTakenByAdversary(false);
                 AppGlobals.putAdversaryTestResults(null);
                 AppGlobals.putUserTestResults(null);
+                AppGlobals.putAdversaryTestResults(null);
+                getActivity().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
                 QuestionnaireFragment.adversaryMode = false;
                 getActivity().finish();
                 break;

@@ -24,6 +24,8 @@ public class AppGlobals extends Application {
     private static final String LOCATION_SERVICE = "location_service";
     private static final String FULL_NAME = "full_name";
     private static final String LOCATION_SERVICE_PAUSED = "location_service_paused";
+    public static final String TIME_TAKEN_FOR_EACH_QUESTION_BY_USER = "time_taken_user";
+    public static final String TIME_TAKEN_FOR_EACH_QUESTION_BY_ADVERSARY = "time_taken_adversary";
     private static Context sContext;
     private static SharedPreferences sPreferences;
 
@@ -45,6 +47,22 @@ public class AppGlobals extends Application {
 
     public static void putNotificationTime(long time) {
         sPreferences.edit().putLong(NOTIFICATION_TIME_IN_MILLIS, time).apply();
+    }
+
+    public static void saveTimeTakenForEachQuestionByUser(StringBuilder time) {
+        sPreferences.edit().putString(TIME_TAKEN_FOR_EACH_QUESTION_BY_USER, time.toString()).apply();
+    }
+
+    public static String getTimeTakenForEachQuestionByUser() {
+        return sPreferences.getString(TIME_TAKEN_FOR_EACH_QUESTION_BY_USER, null);
+    }
+
+    public static void saveTimeTakenForEachQuestionByAdversary(StringBuilder time) {
+        sPreferences.edit().putString(TIME_TAKEN_FOR_EACH_QUESTION_BY_ADVERSARY, time.toString()).apply();
+    }
+
+    public static String getTimeTakenForEachQuestionByAdversary() {
+        return sPreferences.getString(TIME_TAKEN_FOR_EACH_QUESTION_BY_ADVERSARY, null);
     }
 
     public static boolean isAdversaryAdded() {

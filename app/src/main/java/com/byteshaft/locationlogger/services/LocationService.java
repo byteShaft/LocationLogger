@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -27,8 +28,8 @@ import com.google.android.gms.location.LocationServices;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class LocationService extends Service implements
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+    public class LocationService extends Service implements
+            GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private Looper mServiceLooper;
     private ServiceHandler mServiceHandler;
@@ -40,6 +41,7 @@ public class LocationService extends Service implements
     private double latitude;
     private double longitude;
     private static final int FIVE_HOURS_IN_MILLIS = 3600000;
+    public static CountDownTimer repeatNotificationTimer;
 
     private final class ServiceHandler extends Handler {
         public ServiceHandler(Looper looper) {
@@ -130,10 +132,23 @@ public class LocationService extends Service implements
 
     @Override
     public void onLocationChanged(Location location) {
+        Log.i("OnLocationChanged ", "Called");
         long systemTimeInMillis = System.currentTimeMillis();
         // if system time is greater than the notification time show the notification
         if (systemTimeInMillis > AppGlobals.getNotificationTime()) {
-            Helpers.buildNotification("We have now 2 weeks of your data");
+            Helpers.buildNotification("We have now 1 week of your data");
+            repeatNotificationTimer = new CountDownTimer(86400000, 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+
+                }
+
+                @Override
+                public void onFinish() {
+                    Helpers.buildNotification("We have now 1 week of your data");
+                    start();
+                }
+            }.start();
             // stop the service after notification
             stopSelf();
 

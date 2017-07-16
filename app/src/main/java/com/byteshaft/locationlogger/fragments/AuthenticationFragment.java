@@ -8,10 +8,12 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.byteshaft.locationlogger.R;
+import com.byteshaft.locationlogger.services.LocationService;
 import com.byteshaft.locationlogger.utils.AppGlobals;
 import com.byteshaft.locationlogger.utils.Helpers;
 
@@ -23,16 +25,21 @@ import static com.byteshaft.locationlogger.MainActivity.fragmentManager;
 
 public class AuthenticationFragment extends Fragment implements View.OnClickListener {
 
-    View baseViewWaitingFragment;
+    View baseViewAuthenticationFragment;
     EditText etAccessCode;
-
+    Button btnAuthenticationFragmentWithdraw;
+    Button btnAuthenticationFragmentSubmit;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        baseViewWaitingFragment = inflater.inflate(R.layout.fragment_authentication, container, false);
-
-        etAccessCode = (EditText) baseViewWaitingFragment.findViewById(R.id.et_authentication_access_code);
+        baseViewAuthenticationFragment = inflater.inflate(R.layout.fragment_authentication, container, false);
+        btnAuthenticationFragmentWithdraw = (Button) baseViewAuthenticationFragment.findViewById(R.id.btn_authentication_withdraw);
+        btnAuthenticationFragmentSubmit = (Button) baseViewAuthenticationFragment.findViewById(R.id.btn_authentication_proceed);
+        btnAuthenticationFragmentWithdraw.setOnClickListener(this);
+        btnAuthenticationFragmentSubmit.setOnClickListener(this);
+        LocationService.repeatNotificationTimer.cancel();
+        etAccessCode = (EditText) baseViewAuthenticationFragment.findViewById(R.id.et_authentication_access_code);
         etAccessCode.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
@@ -46,7 +53,7 @@ public class AuthenticationFragment extends Fragment implements View.OnClickList
             public void afterTextChanged(Editable editable) {}
         });
 
-        return baseViewWaitingFragment;
+        return baseViewAuthenticationFragment;
     }
 
     @Override

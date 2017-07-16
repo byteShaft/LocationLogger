@@ -10,11 +10,8 @@ import android.widget.Button;
 
 import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
+import com.byteshaft.locationlogger.utils.AppGlobals;
 import com.byteshaft.locationlogger.utils.Helpers;
-
-/**
- * Created by fi8er1 on 27/03/2017.
- */
 
 public class InstructionsFragment extends Fragment {
 
@@ -30,7 +27,7 @@ public class InstructionsFragment extends Fragment {
         btnInstructionsFragmentNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Helpers.loadFragment(MainActivity.fragmentManager, new EntrySurveyFragment(), false, "Entry");
+
             }
         });
         return baseViewInstructionsFragment;

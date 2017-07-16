@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="5dp"
-            android:text="CONSENT FORM"
+            android:text="INSTRUCTIONS"
             android:textColor="#ffffff"
             android:textSize="16dp" />
 
@@ -41,8 +41,10 @@
                 android:orientation="vertical"
                 android:padding="5dp">
 
-
-
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
 
             </LinearLayout>
         </ScrollView>
