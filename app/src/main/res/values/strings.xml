@@ -1,3 +1,25 @@
 <resources>
     <string name="app_name">LocationLogger</string>
+    <string name="instructions">1- Please make sure you have completed reading the consent form and agreed to it.
+2- Please download the application at: . Install and configure the application by entering your email address.
+3- Complete the entry survey, available at . Please make sure you and your pair fill it out (apart from each other on your own devices).
+3- After that there will be a one week data collection period for this system. We will collect location data locally on your phone, this means that the data will be on your phone and we will have no access to it. Your device needs location services turned on for most parts during this week, enough to have ten different location entries throughout the week. No one will see these locations, you will be asked about them and we will record whether your answer to the questions were correct or incorrect.  The researchers will not have access to the actual locations.
+4- For now we will switch to the second system GeoPassHints, available at you will be prompted to login preferably with your UOIT  email address, and for each of four hypothetical accounts, set a location and attach a ‘note’ to it.  Instructions on how to use this system are provided in the website.  Both you and your pair will have to do this.
+6- Session one is concluded, you and your pair will be compensated in cash.
+7- Note that you may leave the study at any time.  If you would like to withdraw, simply contact us to say so or press the withdraw button on the mobile application.
+8- Any time after 1 week, session 2 will be conducted.
+9- The beginning of session 2, will be comprised of you and your pair (separately) being asked questions about your own locations throughout the previous week.
+10- Next, you and your pair will switch phones and attempt to guess each other’s locations throughout the previous week.
+11- The last task for this system, is to answer a short  survey.
+12- Followed by that we will move back to GeoPassHints, where you and your pair (separately) will be asked to remember the notes you attached to your own locations.
+13- Next, similarly to GeoSQ, you will switch and attempt to guess each other’s notes.
+14- Lastly for this session, you will each be asked to answer a short exit survey.
+15- Session 2 is concluded, you and your pair will be compensated in cash. Completion of both studies in pairs puts you and your pair in a draw for $100 cash.
+16- You may withdraw at any time from any session, for any reason.
+17- After six months, you will be asked to return online for a quick third session (approx. 5 minutes).
+18- You will be asked to remember the notes you have attached the locations you have chosen.
+19- Session 3 compensation will be $5
+20- Again, we remind you that you may withdraw at any time!
+21- All your personal information will be confidential, we will not store any of your locations or monitor them in any way. All confidential information collected will by anonymized and all identifying data will be destroyed after the study is complete. We will not share any information with anyone that will compromise your privacy. While storing your responses / emails, we will encrypt all identifying data.
+</string>
 </resources>

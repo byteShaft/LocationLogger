@@ -46,7 +46,6 @@ public class MainActivity extends FragmentActivity {
     // overriding the back press
     @Override
     public void onBackPressed() {
-        // checking backstack entry count
         if (fragmentManager.getBackStackEntryCount() > 0) {
             fragmentManager.popBackStack();
         } else {

@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
+import com.byteshaft.locationlogger.services.LocationService;
 import com.byteshaft.locationlogger.utils.AppGlobals;
 import com.byteshaft.locationlogger.utils.DatabaseHelpers;
 import com.byteshaft.locationlogger.utils.Helpers;
@@ -73,6 +74,16 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     long systemTimeInMillisAfterTest;
     long systemTimeInMillisBeforeTestAdversary;
     long systemTimeInMillisAfterTestAdversary;
+    public static int ANSWER_COUNTER = 0;
+    public static int ANSWER_COUNTER_ADVERSARY = 0;
+    public static StringBuilder sbTimeTakenForEveryQuestionByUser;
+    public static StringBuilder sbTimeTakenForEveryQuestionByAdversary;
+    public long startQuestionTimeInMillis;
+    public long endQuestionTimeInMillis;
+    public long startQuestionTimeInMillisAdversary;
+    public long endQuestionTimeInMillisAdversary;
+    public long timeTakenForAQuestionInMillis;
+    public long timeTakenForAQuestionInMillisAdversary;
 
     // getting user's location from GoogleMapsApi
     private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
@@ -91,7 +102,9 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         public void run() {
             AppGlobals.putAppStatus(4);
             systemTimeInMillisBeforeTestAdversary = System.currentTimeMillis();
+            startQuestionTimeInMillisAdversary = System.currentTimeMillis();
             adversaryMode = true;
+            AppGlobals.putAdversaryAdded(true);
             // resetting correct answer counter before adversary retake
             correctAnswerCounter = 0;
             questionCount = 0;
@@ -116,6 +129,9 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
 
         // getting current system time before test
         systemTimeInMillisBeforeTest = System.currentTimeMillis();
+        startQuestionTimeInMillis = System.currentTimeMillis();
+        sbTimeTakenForEveryQuestionByUser = new StringBuilder();
+        sbTimeTakenForEveryQuestionByAdversary = new StringBuilder();
 
         animLayoutMapSearchBarFadeOut = AnimationUtils.loadAnimation(getActivity(), android.R.anim.fade_out);
         animLayoutMapSearchBarFadeIn = AnimationUtils.loadAnimation(getActivity(), android.R.anim.fade_in);
@@ -296,6 +312,40 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                         "Yes", "Cancel", Helpers.withdraw);
                 break;
             case R.id.btn_map_bottom_overlay_next:
+                if (!adversaryMode) {
+                    ANSWER_COUNTER++;
+                    if (ANSWER_COUNTER == 10) {
+                        endQuestionTimeInMillis = System.currentTimeMillis();
+                        timeTakenForAQuestionInMillis = endQuestionTimeInMillis - startQuestionTimeInMillis;
+                        sbTimeTakenForEveryQuestionByUser.append("Q" + ANSWER_COUNTER + ": " + Helpers.getTimeTakenInMinutesAndSeconds(timeTakenForAQuestionInMillis) + "\n");
+                        ANSWER_COUNTER = 0;
+                        AppGlobals.saveTimeTakenForEachQuestionByUser(sbTimeTakenForEveryQuestionByUser);
+                    } else {
+                        endQuestionTimeInMillis = System.currentTimeMillis();
+                        timeTakenForAQuestionInMillis = endQuestionTimeInMillis - startQuestionTimeInMillis;
+                        sbTimeTakenForEveryQuestionByUser.append("Q" + ANSWER_COUNTER + ": " + Helpers.getTimeTakenInMinutesAndSeconds(timeTakenForAQuestionInMillis) + "\n");
+                        startQuestionTimeInMillis = System.currentTimeMillis();
+                    }
+
+                }
+
+                // for adversary
+                if (adversaryMode) {
+                    ANSWER_COUNTER_ADVERSARY++;
+                    if (ANSWER_COUNTER_ADVERSARY == 10) {
+                        endQuestionTimeInMillisAdversary = System.currentTimeMillis();
+                        timeTakenForAQuestionInMillisAdversary = endQuestionTimeInMillisAdversary - startQuestionTimeInMillisAdversary;
+                        sbTimeTakenForEveryQuestionByAdversary.append("Q" + ANSWER_COUNTER_ADVERSARY + ": " + Helpers.getTimeTakenInMinutesAndSeconds(timeTakenForAQuestionInMillisAdversary) + "\n");
+                        ANSWER_COUNTER_ADVERSARY = 0;
+                        AppGlobals.saveTimeTakenForEachQuestionByAdversary(sbTimeTakenForEveryQuestionByAdversary);
+                    } else {
+                        endQuestionTimeInMillisAdversary = System.currentTimeMillis();
+                        timeTakenForAQuestionInMillisAdversary = endQuestionTimeInMillisAdversary - startQuestionTimeInMillisAdversary;
+                        sbTimeTakenForEveryQuestionByAdversary.append("Q" + ANSWER_COUNTER_ADVERSARY + ": " + Helpers.getTimeTakenInMinutesAndSeconds(timeTakenForAQuestionInMillisAdversary) + "\n");
+                        startQuestionTimeInMillisAdversary = System.currentTimeMillis();
+                    }
+                }
+
                 if (mapMarkerAdded) {
                     mapLocationPointMarker.remove();
                     mapMarkerAdded = false;
@@ -343,12 +393,13 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                             String timeTakenForTestByAdv = Helpers.getTimeTakenInMinutesAndSeconds(timeTakenForTestInMillisAdv);
                             // saving adversary test time in database
                             AppGlobals.putTimeTakenForTestByAdversary(timeTakenForTestByAdv);
+                            AppGlobals.putAdversaryTestResults(correctAnswerCounter + "/10");
                             AppGlobals.testTakenByAdversary(true);
                             correctAnswerCounter = 0;
                         }
-                        if (AppGlobals.isAdversaryAdded() && !adversaryMode) {
+                        if (!adversaryMode) {
                             Helpers.AlertDialogWithPositiveNegativeFunctions(getActivity(), "Adversary Retake",
-                                    "You have an adversary added. Do you want the adversary to take the test as well?", "Yes", "No",
+                                    "Do you want any friendly adversary to guess your location?", "Yes", "No",
                                     adversaryRetake, proceedWithoutAdversary);
                         } else {
                             Helpers.loadFragment(MainActivity.fragmentManager, new ExitSurveyFragment(), false, null);

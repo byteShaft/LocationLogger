@@ -104,7 +104,7 @@ public class EntrySurveyFragment extends Fragment {
                     Helpers.loadFragment(MainActivity.fragmentManager, new WaitingFragment(), false, null);
                     // getting system time and adding the time of two weeks in milliseconds in order
                     // to send notification after two weeks
-                    long notificationTime = System.currentTimeMillis() + 1209600000;
+                    long notificationTime = System.currentTimeMillis() + 5000;
                     AppGlobals.putNotificationTime(notificationTime);
                 }
             }

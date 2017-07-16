@@ -12,6 +12,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import java.text.SimpleDateFormat;
+
+import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
@@ -62,6 +64,10 @@ public class Helpers {
             Helpers.dismissNotification();
             AppGlobals.putUserTestResults(null);
             AppGlobals.putAdversaryTestResults(null);
+            if (LocationService.repeatNotificationTimer != null) {
+                LocationService.repeatNotificationTimer.cancel();
+            }
+            AppGlobals.getContext().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
         }
     };
 
@@ -107,6 +113,7 @@ public class Helpers {
         mBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
         mNotifyMgr.notify(1, mBuilder.build());
         AppGlobals.putAppStatus(2);
+
         if (MainActivity.isMainActivityRunning) {
             Helpers.loadFragment(fragmentManager, new AuthenticationFragment(), false, null);
         }
@@ -311,11 +318,13 @@ public class Helpers {
         return days;
     }
 
-    public static long getRemainingTimeInHours(long remainingTimeInMillis) {
-        long seconds = remainingTimeInMillis / 1000;
+    public static String getRemainingTimeInDaysAndHours(long timeInMillis) {
+        long seconds = timeInMillis / 1000;
         long minutes = seconds / 60;
         long hours = minutes / 60;
-        return hours;
+        long days = hours / 24;
+        long actualHours = hours - days * 24;
+        return String.valueOf(days + "Days - " + actualHours + "Hours");
     }
 
     public static String getTimeTakenInMinutesAndSeconds(long timeInMillis) {

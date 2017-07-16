@@ -73,16 +73,19 @@ public class WelcomeFragment extends Fragment {
                                     "Location Service disabled", "Enable device GPS to continue", "Settings", "ReCheck", "Dismiss",
                                     openLocationServiceSettings, recheckLocationServiceStatus);
                         } else {
-                            Helpers.loadFragment(MainActivity.fragmentManager, new InstructionsFragment(), false, "Instructions");
                             AppGlobals.putUserName(sEmail);
                             AppGlobals.putFullName(sFullName);
+                            Helpers.loadFragment(MainActivity.fragmentManager, new WaitingFragment(), false, null);
+                            // getting system time and adding the time of two weeks in milliseconds in order
+                            // to send notification after two weeks
+                            long notificationTime = System.currentTimeMillis() + 604800000;
+                            System.out.println("Notification Time before: " + notificationTime);
+                            AppGlobals.putNotificationTime(notificationTime);
                         }
                     } else {
                         // if permission's denied make a toast
                         Toast.makeText(getActivity(), "Location permission denied", Toast.LENGTH_SHORT).show();
                     }
-                } else {
-                    Helpers.loadFragment(MainActivity.fragmentManager, new ExitSurveyFragment(), false, "ExitSurvey");
                 }
             }
         });

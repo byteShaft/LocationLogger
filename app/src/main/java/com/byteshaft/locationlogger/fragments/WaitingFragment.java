@@ -27,8 +27,6 @@ public class WaitingFragment extends Fragment {
     Button btnWithdraw;
     Intent locationServiceIntent;
     DatabaseHelpers mDatabaseHelpers;
-    double timeInHours;
-    long timeInDays;
 
     @Nullable
     @Override
@@ -45,16 +43,13 @@ public class WaitingFragment extends Fragment {
         // after that location updates will stop
         long remainingTimeInMillis = AppGlobals.getNotificationTime() - System.currentTimeMillis();
 
-        timeInHours = Helpers.getRemainingTimeInHours(remainingTimeInMillis);
-        timeInDays = Helpers.getRemainingTimeInDays(remainingTimeInMillis);
-        int hours = (int) timeInHours/24;
         // setting and saving status of application in sharedpreferences
         AppGlobals.putAppStatus(1);
 
         tvInstructionsCaution = (TextView) baseViewWaitingFragment.findViewById(R.id.tv_instructions_caution);
         tvInstructionsTimeLeft = (TextView) baseViewWaitingFragment.findViewById(R.id.tv_time_left);
         // setting text for time left before we stop location updates
-        tvInstructionsTimeLeft.setText(timeInDays + "Days - " + hours + "Hours");
+        tvInstructionsTimeLeft.setText(Helpers.getRemainingTimeInDaysAndHours(remainingTimeInMillis));
         btnWithdraw = (Button) baseViewWaitingFragment.findViewById(R.id.btn_withdraw);
         // inflating textview with animation
         animTextViewFading = AnimationUtils.loadAnimation(getActivity(), R.anim.anim_text_fading);
@@ -71,5 +66,12 @@ public class WaitingFragment extends Fragment {
         });
 
         return baseViewWaitingFragment;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        long remainingTimeInMillis = AppGlobals.getNotificationTime() - System.currentTimeMillis();
+        tvInstructionsTimeLeft.setText(Helpers.getRemainingTimeInDaysAndHours(remainingTimeInMillis));
     }
 }

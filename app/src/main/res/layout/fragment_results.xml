@@ -82,30 +82,44 @@
     </LinearLayout>
 
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/background_button"
-        android:layout_below="@+id/ll_results_results"
-        android:orientation="vertical"
-        android:layout_marginTop="10dp"
-        android:padding="5dp">
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:textSize="16dp"
-        android:textStyle="bold"
-        android:layout_marginTop="5dp"
-        android:textColor="#ffffff"
-        android:text="Disclaimer"/>
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_margin="10dp"
-        android:background="#80ffffff" />
-    </LinearLayout>
+        android:layout_below="@+id/ll_results_results">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/background_button"
+            android:orientation="vertical"
+            android:layout_marginTop="10dp"
+            android:padding="5dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:textSize="16dp"
+                android:textStyle="bold"
+                android:layout_marginTop="5dp"
+                android:textColor="#ffffff"
+                android:text="Disclaimer"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_margin="10dp"
+                android:background="#80ffffff" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="#FFF"
+                android:text="No personal responses will be published alongside identifying data such as your fullname or contact information. All demographic data such as age and gender will be aggregated within the research.
+This application will not continue to log your location. We recommend that you uninstall the application, because restarting the application will restart the study, and the application will prompt you for permission to start logging information again. Uninstalling the application will also delete the log file.
+\nThank you for your participation in this study."/>
+        </LinearLayout>
+
+    </ScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"

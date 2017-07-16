@@ -497,12 +497,11 @@ public class ExitSurveyFragment extends Fragment implements View.OnClickListener
                 break;
             case R.id.btn_exit_submit:
                 Helpers.AlertDialogWithPositiveFunctionNegativeButton(getActivity(), "Survey filled?",
-                        "Are you sure you have supplied survey info and want to proceed with sumission?",
+                        "Are you sure you have supplied survey info and want to proceed with submission?",
                         "Yes", "Cancel", submit);
                 break;
         }
     }
-
     private void submitData() {
         // making new httpRequest
         mRequest = new HttpRequest(getActivity());
@@ -523,7 +522,6 @@ public class ExitSurveyFragment extends Fragment implements View.OnClickListener
                             case HttpURLConnection.HTTP_BAD_REQUEST:
                                 Helpers.dismissProgressDialog();
                                 Toast.makeText(getActivity(), "Something is wrong, try again later", Toast.LENGTH_LONG).show();
-                                Log.e("getSurveyString", "" + getSurveyString());
                                 break;
                             case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
                                 Helpers.dismissProgressDialog();
@@ -534,8 +532,8 @@ public class ExitSurveyFragment extends Fragment implements View.OnClickListener
             }
         });
         mRequest.open("POST", "http://138.68.145.58/api/survey");
-        mRequest.send(getDataString(AppGlobals.getUsername(), AppGlobals.getFullName(), AppGlobals.getGender(),
-                AppGlobals.getAdversaryName(), AppGlobals.getRelationWithAdversary(), AppGlobals.getUserTestResults(),
+        mRequest.send(getDataString(AppGlobals.getUsername(), AppGlobals.getFullName(), "null",
+                "null", "null", AppGlobals.getUserTestResults(),
                 AppGlobals.getAdversaryTestResults(), AppGlobals.getTimeTakenForTestByUser(), AppGlobals.getTimeTakenForTestByAdversary()));
     }
 
@@ -552,9 +550,9 @@ public class ExitSurveyFragment extends Fragment implements View.OnClickListener
             json.put("adversary_relation", adversaryRelation);
             json.put("test_results", userTestResults);
             json.put("adversary_test_results", adversaryTestResults);
-            json.put("time_taken_by_user", timeTakenForTestByUser);
-            json.put("time_taken_by_adversary", timeTakenForTestByAdversary);
-            json.put("answers", getSurveyString());
+            json.put("time_taken_by_user", timeTakenForTestByUser + "\n" + AppGlobals.getTimeTakenForEachQuestionByUser());
+            json.put("time_taken_by_adversary", timeTakenForTestByAdversary + "\n" + AppGlobals.getTimeTakenForEachQuestionByAdversary());
+            json.put("answers", getAnswersString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -572,6 +570,75 @@ public class ExitSurveyFragment extends Fragment implements View.OnClickListener
             e.printStackTrace();
         }
 
+        return jsonArray;
+    }
+
+    public JSONArray getAnswersString() {
+        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("answer", sbExitQuestionOne.getProgress() + "/7");
+            jsonObject.put("question", "Scale the system's ease of use");
+            jsonArray.put(jsonObject);
+            jsonObject = new JSONObject();
+
+            if (switchExitQuestionTwo.isChecked()) {
+                jsonObject.put("answer", "Yes: " + etExitQuestionTwo.getText().toString());
+            } else {
+                jsonObject.put("answer", "No");
+            }
+            jsonObject.put("question", "Did you write down or record any information that would help you use this system?");
+            jsonArray.put(jsonObject);
+            jsonObject = new JSONObject();
+
+            jsonObject.put("answer", "Security questions: " + sbExitQuestionThreePartOne.getProgress() + "/7\n"
+            + "Email resets: " + sbExitQuestionThreePartTwo.getProgress() + "/7\n"
+            + "SMS resets: " + sbExitQuestionThreePartThree.getProgress() + "/7");
+            jsonObject.put("question", "For a mobile device’s forgotten password/PIN or failed biometric, to what extent would you prefer to use this system in lieu of any of the following fallback authentication methods?");
+            jsonArray.put(jsonObject);
+            jsonObject = new JSONObject();
+
+            jsonObject.put("answer", "Security questions: " + sbExitQuestionFourPartOne.getProgress() + "/7\n"
+            + "Email resets: " + sbExitQuestionFourPartTwo.getProgress() + "/7\n"
+            + "SMS resets: " + sbExitQuestionFourPartThree.getProgress() + "/7");
+            jsonObject.put("question", "For an online account’s forgotten password, to what extent would you prefer to use this system in lieu of any of the following fallback authentication methods?");
+            jsonArray.put(jsonObject);
+            jsonObject = new JSONObject();
+
+            jsonObject.put("answer", "Email account: " + sbExitQuestionFivePartOne.getProgress() + "/7\n"
+            +"Online Bank Account: " + sbExitQuestionFivePartTwo.getProgress() + "/7\n"
+            +"Social Networking account: " + sbExitQuestionFivePartThree.getProgress() + "/7\n"
+            +"E-commerce account: " + sbExitQuestionFivePartFour.getProgress() + "/7\n"
+            +"Other infrequently accessed accounts: " + sbExitQuestionFivePartFive.getProgress() + "/7\n"
+            +"Mobile device: " + sbExitQuestionFivePartSix.getProgress() + "/7\n"
+            +"University account: " + sbExitQuestionFivePartSeven.getProgress() + "/7\n"
+            +"Job related account: " + sbExitQuestionFivePartEight.getProgress() + "/7");
+            jsonObject.put("question", "Please rate your agreement with the following statements.  I would prefer to use the [GeoSQ/GeoPassHints] system to login to any of the following accounts, instead of entering a password, for this account type:");
+            jsonArray.put(jsonObject);
+            jsonObject = new JSONObject();
+
+            jsonObject.put("answer", sbExitQuestionSix.getProgress() + "/7");
+            jsonObject.put("question", "If you were to use this system, how likely do you think it is that someone you know could access your device/accounts without consent?");
+            jsonArray.put(jsonObject);
+            jsonObject = new JSONObject();
+
+            jsonObject.put("answer", sbExitQuestionSeven.getProgress() + "/7");
+            jsonObject.put("question", "How concerned are you about a privacy leak on any medium (e.g. Facebook, contact information, pictures)?");
+            jsonArray.put(jsonObject);
+            jsonObject = new JSONObject();
+
+            jsonObject.put("answer", sbExitQuestionEight.getProgress() + "/7");
+            jsonObject.put("question", "To what extent are you concerned of a privacy leak as a result of applications utilizing location services (e.g., Google Locations, GeoSQ, etc.)?");
+            jsonArray.put(jsonObject);
+            jsonObject = new JSONObject();
+
+            jsonObject.put("answer", "." + etExitQuestionNine.getText().toString().trim());
+            jsonObject.put("question", "Do you have any additional feedback or comments about the system?");
+            jsonArray.put(jsonObject);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         return jsonArray;
     }
 
