@@ -85,4 +85,6 @@ public class MainActivity extends FragmentActivity {
         super.onPause();
         isMainActivityRunning = false;
     }
+
+
 }
