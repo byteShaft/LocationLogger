@@ -77,8 +77,7 @@ import java.util.Date;
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000); // in milliseconds
         mLocationRequest.setFastestInterval(5000);// in milliseconds
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        mLocationRequest.setSmallestDisplacement(10);// in meters
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
     private String getCurrentTimeStamp() {

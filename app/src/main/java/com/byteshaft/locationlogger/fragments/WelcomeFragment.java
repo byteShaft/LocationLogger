@@ -24,12 +24,10 @@ public class WelcomeFragment extends Fragment {
 
     View baseViewWelcomeFragment;
 
-    EditText etLoginEmail;
     EditText etLoginFullName;
     Button btnLoginNext;
     CheckBox cbLoginTerms;
 
-    String sEmail;
     String sFullName;
 
     @Nullable
@@ -37,7 +35,6 @@ public class WelcomeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         baseViewWelcomeFragment = inflater.inflate(R.layout.fragment_welcome, container, false);
 
-        etLoginEmail = (EditText) baseViewWelcomeFragment.findViewById(R.id.et_login_email);
         etLoginFullName = (EditText) baseViewWelcomeFragment.findViewById(R.id.et_login_full_name);
         btnLoginNext = (Button) baseViewWelcomeFragment.findViewById(R.id.btn_login_next);
         cbLoginTerms = (CheckBox) baseViewWelcomeFragment.findViewById(R.id.cb_terms_of_service_check);
@@ -64,7 +61,6 @@ public class WelcomeFragment extends Fragment {
         btnLoginNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sEmail = etLoginEmail.getText().toString();
                 sFullName = etLoginFullName.getText().toString();
                 if (validateLoginInfo()) {
                     if (Helpers.hasPermissionsForDevicesAboveMarshmallowIfNotRequestPermissions(getActivity())) {
@@ -73,12 +69,11 @@ public class WelcomeFragment extends Fragment {
                                     "Location Service disabled", "Enable device GPS to continue", "Settings", "ReCheck", "Dismiss",
                                     openLocationServiceSettings, recheckLocationServiceStatus);
                         } else {
-                            AppGlobals.putUserName(sEmail);
                             AppGlobals.putFullName(sFullName);
                             Helpers.loadFragment(MainActivity.fragmentManager, new WaitingFragment(), false, null);
                             // getting system time and adding the time of two weeks in milliseconds in order
                             // to send notification after two weeks
-                            long notificationTime = System.currentTimeMillis() + 604800000;
+                            long notificationTime = System.currentTimeMillis() + 20000;
                             System.out.println("Notification Time before: " + notificationTime);
                             AppGlobals.putNotificationTime(notificationTime);
                         }
@@ -96,19 +91,6 @@ public class WelcomeFragment extends Fragment {
     // this method checks for valid user input
     private boolean validateLoginInfo() {
         boolean valid = true;
-
-        // trim blank space and check if it's still empty
-        if (sEmail.trim().isEmpty()) {
-            etLoginEmail.setError("Empty");
-            valid = false;
-
-            // if email address is not empty then check if it's valid or not
-        } else if (!sEmail.trim().isEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(sEmail).matches()) {
-            etLoginEmail.setError("Invalid E-Mail");
-            valid = false;
-        } else {
-            etLoginEmail.setError(null);
-        }
 
         if (sFullName.trim().isEmpty()) {
             etLoginFullName.setError("Empty");

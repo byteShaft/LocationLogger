@@ -59,15 +59,24 @@ public class Helpers {
             AppGlobals.putAppStatus(0);
             AppGlobals.putAdversaryAdded(false);
             Helpers.loadFragment(fragmentManager, new WelcomeFragment(), true, null);
+            QuestionnaireFragment.adversaryMode = false;
             Intent locationServiceIntent = new Intent(MainActivity.getInstance(), LocationService.class);
             MainActivity.getInstance().stopService(locationServiceIntent);
             Helpers.dismissNotification();
             AppGlobals.putUserTestResults(null);
             AppGlobals.putAdversaryTestResults(null);
+
+            AppGlobals.getContext().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
             if (LocationService.repeatNotificationTimer != null) {
                 LocationService.repeatNotificationTimer.cancel();
             }
-            AppGlobals.getContext().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
+        }
+    };
+
+    public static final Runnable openAdversaryRetake = new Runnable() {
+        @Override
+        public void run() {
+            Helpers.loadFragment(MainActivity.fragmentManager, new QuestionnaireFragment(), true, null);
         }
     };
 

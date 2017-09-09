@@ -66,7 +66,7 @@ public class AppGlobals extends Application {
     }
 
     public static boolean isAdversaryAdded() {
-        return sPreferences.getBoolean(ADVERSARY_ADDED, false);
+        return sPreferences.getBoolean(ADVERSARY_ADDED, true);
     }
 
     public static void testTakenByAdversary(boolean testTakenByAdversary) {

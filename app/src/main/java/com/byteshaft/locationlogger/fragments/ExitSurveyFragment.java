@@ -532,18 +532,18 @@ public class ExitSurveyFragment extends Fragment implements View.OnClickListener
             }
         });
         mRequest.open("POST", "http://138.68.145.58/api/survey");
-        mRequest.send(getDataString(AppGlobals.getUsername(), AppGlobals.getFullName(), "null",
+        mRequest.send(getDataString(AppGlobals.getFullName(), "null",
                 "null", "null", AppGlobals.getUserTestResults(),
                 AppGlobals.getAdversaryTestResults(), AppGlobals.getTimeTakenForTestByUser(), AppGlobals.getTimeTakenForTestByAdversary()));
     }
 
-    public String getDataString(String email, String fullName, String gender,
+    public String getDataString(String fullName, String gender,
                                        String adversaryName, String adversaryRelation,
                                        String userTestResults, String adversaryTestResults,
                                        String timeTakenForTestByUser, String timeTakenForTestByAdversary) {
         JSONObject json = new JSONObject();
         try {
-            json.put("email", email);
+            json.put("email", "example@example.com");
             json.put("full_name", fullName);
             json.put("gender", gender);
             json.put("adversary_name", adversaryName);
