@@ -123,6 +123,9 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
 
             @Override
             public void onPlaceSelected(Place place) {
+                if (mapMarkerAdded) {
+                    btnQuestionnaireFragmentRemove.callOnClick();
+                }
                 searchAnimateCamera(place.getLatLng());
             }
 
@@ -204,23 +207,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                             @Override
                             public void onMapLongClick(final LatLng latLng) {
-                                if (!mapMarkerAdded) {
-                                    answerLatLng = latLng;
-                                    mapLocationPointMarker = mMap.addMarker(new MarkerOptions().position(latLng));
-                                    mapMarkerAdded = true;
-                                    llQuestionnaireBottomOverlayThree.setVisibility(View.GONE);
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            tvQuestionnaireBottomOverlayThree.setText("Location Marked - Continue");
-                                            llQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
-                                        }
-                                    }, 750);
-                                    btnQuestionnaireFragmentNext.setEnabled(true);
-                                    btnQuestionnaireFragmentNext.setAlpha(1.0f);
-                                    btnQuestionnaireFragmentRemove.setEnabled(true);
-                                    btnQuestionnaireFragmentRemove.setAlpha(1.0f);
-                                }
+                                addAnswerMarkerOnMap(latLng);
                             }
                         });
                     }
@@ -399,7 +386,17 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(address, 15.0f));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(address, 15.0f), new GoogleMap.CancelableCallback() {
+                    @Override
+                    public void onFinish() {
+                        addAnswerMarkerOnMap(address);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        Toast.makeText(getActivity(), "Search interrupted", Toast.LENGTH_SHORT).show();
+                    }
+                });
                 mMap.clear();
             }
         });
@@ -418,5 +415,25 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     public void onResume() {
         super.onResume();
         isQuestionnaireFragmentOpen = true;
+    }
+
+    private void addAnswerMarkerOnMap(LatLng latLng) {
+        if (!mapMarkerAdded) {
+            answerLatLng = latLng;
+            mapLocationPointMarker = mMap.addMarker(new MarkerOptions().position(latLng));
+            mapMarkerAdded = true;
+            llQuestionnaireBottomOverlayThree.setVisibility(View.GONE);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    tvQuestionnaireBottomOverlayThree.setText("Location Marked - Continue");
+                    llQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
+                }
+            }, 750);
+            btnQuestionnaireFragmentNext.setEnabled(true);
+            btnQuestionnaireFragmentNext.setAlpha(1.0f);
+            btnQuestionnaireFragmentRemove.setEnabled(true);
+            btnQuestionnaireFragmentRemove.setAlpha(1.0f);
+        }
     }
 }
