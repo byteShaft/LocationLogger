@@ -59,6 +59,14 @@ public class ResultsFragment extends Fragment implements View.OnClickListener {
             case R.id.btn_results_withdraw:
                 Helpers.withdraw.run();
                 AppGlobals.getContext().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
+                getActivity().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
+                AppGlobals.putAppStatus(0);
+                AppGlobals.putAdversaryAdded(false);
+                AppGlobals.testTakenByAdversary(false);
+                AppGlobals.putAdversaryTestResults(null);
+                AppGlobals.putUserTestResults(null);
+                AppGlobals.putAdversaryTestResults(null);
+                QuestionnaireFragment.adversaryMode = false;
                 break;
             case R.id.btn_results_finish:
                 // setting application status and finishing the current activity

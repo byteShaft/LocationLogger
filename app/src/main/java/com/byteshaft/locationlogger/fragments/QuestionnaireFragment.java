@@ -1,19 +1,17 @@
 package com.byteshaft.locationlogger.fragments;
 
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -23,10 +21,13 @@ import android.widget.Toast;
 
 import com.byteshaft.locationlogger.MainActivity;
 import com.byteshaft.locationlogger.R;
-import com.byteshaft.locationlogger.services.LocationService;
 import com.byteshaft.locationlogger.utils.AppGlobals;
 import com.byteshaft.locationlogger.utils.DatabaseHelpers;
 import com.byteshaft.locationlogger.utils.Helpers;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -35,10 +36,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class QuestionnaireFragment extends Fragment implements View.OnClickListener {
 
@@ -49,23 +46,17 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     Button btnQuestionnaireFragmentWithdraw;
     Button btnQuestionnaireFragmentRemove;
     Button btnQuestionnaireFragmentNext;
-    ImageButton btnQuestionnaireFragmentSearch;
     ImageButton btnQuestionnaireFragmentMapType;
     ImageButton btnQuestionnaireFragmentCurrentLocation;
     TextView tvQuestionnaireBottomOverlayOne;
     TextView tvQuestionnaireBottomOverlayTwo;
     TextView tvQuestionnaireBottomOverlayThree;
     LinearLayout llQuestionnaireBottomOverlayThree;
-    boolean isSearchEditTextVisible;
-    private String inputMapSearch;
     private boolean mapMarkerAdded;
     private boolean cameraAnimatedToCurrentLocation;
     View baseViewQuestionnaireFragment;
-    EditText etMapSearch;
     boolean simpleMapView = true;
     public static boolean adversaryMode;
-    private Animation animLayoutMapSearchBarFadeOut;
-    private Animation animLayoutMapSearchBarFadeIn;
     private static GoogleMap mMap = null;
     private static LatLng currentLatLngAuto;
     private DatabaseHelpers mDatabaseHelpers;
@@ -85,6 +76,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     public long timeTakenForAQuestionInMillis;
     public long timeTakenForAQuestionInMillisAdversary;
     LatLng actualLatLng;
+    PlaceAutocompleteFragment autocompleteFragment;
 
     // getting user's location from GoogleMapsApi
     private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
@@ -127,17 +119,34 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         baseViewQuestionnaireFragment = inflater.inflate(R.layout.fragment_questionnaire, container, false);
+
         // dismiss notification on start of this fragment
         Helpers.dismissNotification();
 
+        getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
+        if (autocompleteFragment == null) {
+            autocompleteFragment = (PlaceAutocompleteFragment) getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete);
+            autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+
+                @Override
+                public void onPlaceSelected(Place place) {
+                    searchAnimateCamera(place.getLatLng());
+                }
+
+                @Override
+                public void onError(Status status) {
+                    // TODO: Handle the error.
+                    Log.i("place", "An error occurred: " + status);
+                }
+            });
+        }
+
         // getting current system time before test
+
         systemTimeInMillisBeforeTest = System.currentTimeMillis();
         startQuestionTimeInMillis = System.currentTimeMillis();
         sbTimeTakenForEveryQuestionByUser = new StringBuilder();
         sbTimeTakenForEveryQuestionByAdversary = new StringBuilder();
-
-        animLayoutMapSearchBarFadeOut = AnimationUtils.loadAnimation(getActivity(), android.R.anim.fade_out);
-        animLayoutMapSearchBarFadeIn = AnimationUtils.loadAnimation(getActivity(), android.R.anim.fade_in);
 
         mDatabaseHelpers = new DatabaseHelpers(getActivity());
 
@@ -155,8 +164,6 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
 
         llQuestionnaireBottomOverlayThree = (LinearLayout) baseViewQuestionnaireFragment.findViewById(R.id.ll_map_bottom_overlay_three);
 
-        btnQuestionnaireFragmentSearch = (ImageButton) baseViewQuestionnaireFragment.findViewById(R.id.btn_map_search);
-        btnQuestionnaireFragmentSearch.setOnClickListener(this);
         btnQuestionnaireFragmentMapType = (ImageButton) baseViewQuestionnaireFragment.findViewById(R.id.btn_map_type);
         btnQuestionnaireFragmentMapType.setOnClickListener(this);
         btnQuestionnaireFragmentCurrentLocation = (ImageButton) baseViewQuestionnaireFragment.findViewById(R.id.btn_map_current_location);
@@ -177,8 +184,6 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         btnQuestionnaireFragmentRemove.setOnClickListener(this);
         btnQuestionnaireFragmentRemove.setEnabled(false);
         btnQuestionnaireFragmentRemove.setAlpha(0.5f);
-
-        etMapSearch = (EditText) baseViewQuestionnaireFragment.findViewById(R.id.et_map_search);
 
         if (AuthenticationFragmentTwo.isAdversaryTestRequestedForReTaken) {
             adversaryRetake.run();
@@ -211,9 +216,6 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                             @Override
                             public void onMapLongClick(final LatLng latLng) {
-                                if (isSearchEditTextVisible) {
-                                    setSearchBarVisibility(false);
-                                }
                                 if (!mapMarkerAdded) {
                                     answerLatLng = latLng;
                                     mapLocationPointMarker = mMap.addMarker(new MarkerOptions().position(latLng));
@@ -235,77 +237,6 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                         });
                     }
                 });
-
-        etMapSearch.addTextChangedListener(new TextWatcher() {
-            Timer textChangeTimer = new Timer();
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                textChangeTimer.cancel();
-                inputMapSearch = etMapSearch.getText().toString();
-                if (inputMapSearch.length() > 2) {
-                    textChangeTimer = new Timer();
-                    textChangeTimer.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            if (isQuestionnaireFragmentOpen) {
-                                Geocoder geocoder = new Geocoder(getActivity());
-                                List<Address> addresses = null;
-                                try {
-                                    addresses = geocoder.getFromLocationName(inputMapSearch, 3);
-                                    if (addresses != null && !addresses.equals("")) {
-                                        searchAnimateCamera(addresses);
-                                    }
-                                } catch (Exception ignored) {
-                                }
-                            }
-                        }
-                    }, 1500);
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        animLayoutMapSearchBarFadeOut.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                etMapSearch.setText("");
-                isSearchEditTextVisible = false;
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-
-        animLayoutMapSearchBarFadeIn.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                isSearchEditTextVisible = true;
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-        });
         return baseViewQuestionnaireFragment;
     }
 
@@ -467,9 +398,6 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                     Toast.makeText(getActivity(), "Error: Location Service disabled", Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case R.id.btn_map_search:
-                setSearchBarVisibility(!isSearchEditTextVisible);
-                break;
             case R.id.btn_map_type:
                 if (simpleMapView) {
                     // simple map type
@@ -486,29 +414,15 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         }
     }
 
-    private void setSearchBarVisibility(boolean visibility) {
-        if (!visibility) {
-            etMapSearch.startAnimation(animLayoutMapSearchBarFadeOut);
-            etMapSearch.setVisibility(View.INVISIBLE);
-        } else {
-            etMapSearch.setVisibility(View.VISIBLE);
-            etMapSearch.startAnimation(animLayoutMapSearchBarFadeIn);
-        }
-    }
-
-    protected void searchAnimateCamera(List<Address> addresses) {
-        final Address addressForSearch = addresses.get(0);
+    protected void searchAnimateCamera(final LatLng address) {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                LatLng latLngSearch = new LatLng(addressForSearch.getLatitude(), addressForSearch.getLongitude());
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLngSearch, 15.0f));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(address, 15.0f));
                 mMap.clear();
             }
         });
     }
-
-
 
     @Override
     public void onPause() {
@@ -520,6 +434,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     @Override
     public void onResume() {
         super.onResume();
+
         isQuestionnaireFragmentOpen = true;
     }
 }
