@@ -61,24 +61,6 @@
         android:layout_alignParentStart="true">
 
         <EditText
-            android:id="@+id/et_login_email"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/background_edit_text"
-            android:drawableLeft="@mipmap/ic_edit_text_email"
-            android:drawablePadding="10dp"
-            android:hint="E-Mail"
-            android:imeOptions="actionNext"
-            android:inputType="textEmailAddress"
-            android:maxLength="48"
-            android:padding="10dp"
-            android:textColor="#ffffff"
-            android:textColorHint="#80ffffff"
-            android:textCursorDrawable="@null"
-            android:textSize="18dp" />
-
-        <EditText
             android:id="@+id/et_login_full_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -86,7 +68,7 @@
             android:background="@drawable/background_edit_text"
             android:drawableLeft="@mipmap/ic_edit_text_full_name"
             android:drawablePadding="10dp"
-            android:hint="Full Name"
+            android:hint="Assigned ID"
             android:imeOptions="actionDone"
             android:inputType="textPersonName"
             android:maxLength="32"

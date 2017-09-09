@@ -84,6 +84,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     public long endQuestionTimeInMillisAdversary;
     public long timeTakenForAQuestionInMillis;
     public long timeTakenForAQuestionInMillisAdversary;
+    LatLng actualLatLng;
 
     // getting user's location from GoogleMapsApi
     private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
@@ -106,6 +107,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
             adversaryMode = true;
             AppGlobals.putAdversaryAdded(true);
             // resetting correct answer counter before adversary retake
+            System.out.println("adversary Retake");
             correctAnswerCounter = 0;
             questionCount = 0;
             tvQuestionnaireBottomOverlayOne.setText("1/10");
@@ -116,7 +118,8 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
 
     public static final Runnable proceedWithoutAdversary = new Runnable() {
         public void run() {
-            Helpers.loadFragment(MainActivity.fragmentManager, new ExitSurveyFragment(), false, null);
+            Helpers.loadFragment(MainActivity.fragmentManager, new AuthenticationFragmentTwo(), false, null);
+            AppGlobals.putAppStatus(7);
         }
     };
 
@@ -176,6 +179,10 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         btnQuestionnaireFragmentRemove.setAlpha(0.5f);
 
         etMapSearch = (EditText) baseViewQuestionnaireFragment.findViewById(R.id.et_map_search);
+
+        if (AuthenticationFragmentTwo.isAdversaryTestRequestedForReTaken) {
+            adversaryRetake.run();
+        }
 
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map_for_questionnaire);
@@ -383,8 +390,10 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                             // saving test time taken by the user in database
                             AppGlobals.putTimeTakenForTestByUser(timeTakenForTestByUser);
                             // saving correct answers in database
+                            correctAnswerCounter ++;
                             AppGlobals.putUserTestResults(correctAnswerCounter + "/10");
                             AppGlobals.testTakenByAdversary(false);
+                            System.out.println("Condition true");
                             correctAnswerCounter = 0;
                         } else {
                             systemTimeInMillisAfterTestAdversary = System.currentTimeMillis();
@@ -392,6 +401,10 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                             long timeTakenForTestInMillisAdv = systemTimeInMillisAfterTestAdversary - systemTimeInMillisBeforeTestAdversary;
                             String timeTakenForTestByAdv = Helpers.getTimeTakenInMinutesAndSeconds(timeTakenForTestInMillisAdv);
                             // saving adversary test time in database
+                            if (Helpers.isAnswerLocationInVicinityOfActualLocation(answerLatLng, actualLatLng)) {
+                                correctAnswerCounter++;
+                                System.out.println("Correct Answer Counter: " + correctAnswerCounter);
+                            }
                             AppGlobals.putTimeTakenForTestByAdversary(timeTakenForTestByAdv);
                             AppGlobals.putAdversaryTestResults(correctAnswerCounter + "/10");
                             AppGlobals.testTakenByAdversary(true);
@@ -409,11 +422,12 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
 
                     // getting latitude and longitude and converting them to latlng object in order to
                     // compare results
-                    LatLng actualLatLng = new LatLng(Double.parseDouble(mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).
+                    actualLatLng = new LatLng(Double.parseDouble(mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).
                             get("latitude")), Double.parseDouble(mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).
                             get("longitude")));
                     if (Helpers.isAnswerLocationInVicinityOfActualLocation(answerLatLng, actualLatLng)) {
                         correctAnswerCounter++;
+                        System.out.println("Correct Answer Counter: " + correctAnswerCounter);
                     }
                 }
                 break;

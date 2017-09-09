@@ -64,10 +64,18 @@ public class Helpers {
             Helpers.dismissNotification();
             AppGlobals.putUserTestResults(null);
             AppGlobals.putAdversaryTestResults(null);
+
+            AppGlobals.getContext().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
             if (LocationService.repeatNotificationTimer != null) {
                 LocationService.repeatNotificationTimer.cancel();
             }
-            AppGlobals.getContext().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
+        }
+    };
+
+    public static final Runnable openAdversaryRetake = new Runnable() {
+        @Override
+        public void run() {
+            Helpers.loadFragment(MainActivity.fragmentManager, new QuestionnaireFragment(), true, null);
         }
     };
 

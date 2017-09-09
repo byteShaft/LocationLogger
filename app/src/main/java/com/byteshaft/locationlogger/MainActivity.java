@@ -6,6 +6,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 
 import com.byteshaft.locationlogger.fragments.AuthenticationFragment;
+import com.byteshaft.locationlogger.fragments.AuthenticationFragmentTwo;
 import com.byteshaft.locationlogger.fragments.ExitSurveyFragment;
 import com.byteshaft.locationlogger.fragments.QuestionnaireFragment;
 import com.byteshaft.locationlogger.fragments.ResultsFragment;
@@ -71,6 +72,8 @@ public class MainActivity extends FragmentActivity {
             Helpers.loadFragment(fragmentManager, new ExitSurveyFragment(), false, null);
         } else if (AppGlobals.getAppStatus() == 6) {
             Helpers.loadFragment(fragmentManager, new ResultsFragment(), false, null);
+        } else if (AppGlobals.getAppStatus() == 7) {
+            Helpers.loadFragment(fragmentManager, new AuthenticationFragmentTwo() ,false, null);
         }
     }
 
