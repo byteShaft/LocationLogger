@@ -38,7 +38,9 @@ public class AuthenticationFragment extends Fragment implements View.OnClickList
         btnAuthenticationFragmentSubmit = (Button) baseViewAuthenticationFragment.findViewById(R.id.btn_authentication_proceed);
         btnAuthenticationFragmentWithdraw.setOnClickListener(this);
         btnAuthenticationFragmentSubmit.setOnClickListener(this);
-        LocationService.repeatNotificationTimer.cancel();
+        if (LocationService.repeatNotificationTimer != null) {
+            LocationService.repeatNotificationTimer.cancel();
+        }
         etAccessCode = (EditText) baseViewAuthenticationFragment.findViewById(R.id.et_authentication_access_code);
         etAccessCode.addTextChangedListener(new TextWatcher() {
             @Override

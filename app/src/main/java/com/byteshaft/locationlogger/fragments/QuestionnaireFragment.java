@@ -5,15 +5,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -53,8 +51,9 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     TextView tvQuestionnaireBottomOverlayThree;
     LinearLayout llQuestionnaireBottomOverlayThree;
     private boolean mapMarkerAdded;
+    SupportMapFragment mapFragment;
     private boolean cameraAnimatedToCurrentLocation;
-    View baseViewQuestionnaireFragment;
+    View baseViewQuestionnaireFragment = null;
     boolean simpleMapView = true;
     public static boolean adversaryMode;
     private static GoogleMap mMap = null;
@@ -118,20 +117,35 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        baseViewQuestionnaireFragment = inflater.inflate(R.layout.fragment_questionnaire, container, false);
+
+        if (baseViewQuestionnaireFragment != null) {
+            ViewGroup parent = (ViewGroup) baseViewQuestionnaireFragment.getParent();
+            if (parent != null)
+                parent.removeView(baseViewQuestionnaireFragment);
+        }
+        try {
+            baseViewQuestionnaireFragment = inflater.inflate(R.layout.fragment_questionnaire, container, false);
+        } catch (InflateException e) {
+            Log.e("inflate ", "" + e);
+        /* map is already there, just return view as it is */
+        }
+
+
 
         // dismiss notification on start of this fragment
         Helpers.dismissNotification();
 
         getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
-        if (autocompleteFragment == null) {
             autocompleteFragment = (PlaceAutocompleteFragment) getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete);
             autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
 
-                @Override
-                public void onPlaceSelected(Place place) {
-                    searchAnimateCamera(place.getLatLng());
+            @Override
+            public void onPlaceSelected(Place place) {
+                if (mapMarkerAdded) {
+                    btnQuestionnaireFragmentRemove.callOnClick();
                 }
+                searchAnimateCamera(place.getLatLng());
+            }
 
                 @Override
                 public void onError(Status status) {
@@ -139,7 +153,6 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                     Log.i("place", "An error occurred: " + status);
                 }
             });
-        }
 
         // getting current system time before test
 
@@ -189,7 +202,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
             adversaryRetake.run();
         }
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
+        mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map_for_questionnaire);
 
         // getting google maps from map fragment
@@ -216,23 +229,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                             @Override
                             public void onMapLongClick(final LatLng latLng) {
-                                if (!mapMarkerAdded) {
-                                    answerLatLng = latLng;
-                                    mapLocationPointMarker = mMap.addMarker(new MarkerOptions().position(latLng));
-                                    mapMarkerAdded = true;
-                                    llQuestionnaireBottomOverlayThree.setVisibility(View.GONE);
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            tvQuestionnaireBottomOverlayThree.setText("Location Marked - Continue");
-                                            llQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
-                                        }
-                                    }, 750);
-                                    btnQuestionnaireFragmentNext.setEnabled(true);
-                                    btnQuestionnaireFragmentNext.setAlpha(1.0f);
-                                    btnQuestionnaireFragmentRemove.setEnabled(true);
-                                    btnQuestionnaireFragmentRemove.setAlpha(1.0f);
-                                }
+                                addAnswerMarkerOnMap(latLng);
                             }
                         });
                     }
@@ -418,7 +415,17 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(address, 15.0f));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(address, 15.0f), new GoogleMap.CancelableCallback() {
+                    @Override
+                    public void onFinish() {
+                        addAnswerMarkerOnMap(address);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        Toast.makeText(getActivity(), "Search interrupted", Toast.LENGTH_SHORT).show();
+                    }
+                });
                 mMap.clear();
             }
         });
@@ -434,7 +441,26 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     @Override
     public void onResume() {
         super.onResume();
-
         isQuestionnaireFragmentOpen = true;
+    }
+
+    private void addAnswerMarkerOnMap(LatLng latLng) {
+        if (!mapMarkerAdded) {
+            answerLatLng = latLng;
+            mapLocationPointMarker = mMap.addMarker(new MarkerOptions().position(latLng));
+            mapMarkerAdded = true;
+            llQuestionnaireBottomOverlayThree.setVisibility(View.GONE);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    tvQuestionnaireBottomOverlayThree.setText("Location Marked - Continue");
+                    llQuestionnaireBottomOverlayThree.setVisibility(View.VISIBLE);
+                }
+            }, 750);
+            btnQuestionnaireFragmentNext.setEnabled(true);
+            btnQuestionnaireFragmentNext.setAlpha(1.0f);
+            btnQuestionnaireFragmentRemove.setEnabled(true);
+            btnQuestionnaireFragmentRemove.setAlpha(1.0f);
+        }
     }
 }
