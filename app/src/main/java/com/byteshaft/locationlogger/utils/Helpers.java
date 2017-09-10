@@ -11,9 +11,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import java.text.SimpleDateFormat;
-
-import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
@@ -34,7 +31,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.SphericalUtil;
 
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
@@ -59,15 +56,24 @@ public class Helpers {
             AppGlobals.putAppStatus(0);
             AppGlobals.putAdversaryAdded(false);
             Helpers.loadFragment(fragmentManager, new WelcomeFragment(), true, null);
+            QuestionnaireFragment.adversaryMode = false;
             Intent locationServiceIntent = new Intent(MainActivity.getInstance(), LocationService.class);
             MainActivity.getInstance().stopService(locationServiceIntent);
             Helpers.dismissNotification();
             AppGlobals.putUserTestResults(null);
             AppGlobals.putAdversaryTestResults(null);
+
+            AppGlobals.getContext().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
             if (LocationService.repeatNotificationTimer != null) {
                 LocationService.repeatNotificationTimer.cancel();
             }
-            AppGlobals.getContext().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
+        }
+    };
+
+    public static final Runnable openAdversaryRetake = new Runnable() {
+        @Override
+        public void run() {
+            Helpers.loadFragment(MainActivity.fragmentManager, new QuestionnaireFragment(), true, null);
         }
     };
 

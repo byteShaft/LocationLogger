@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,8 +52,9 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     TextView tvQuestionnaireBottomOverlayThree;
     LinearLayout llQuestionnaireBottomOverlayThree;
     private boolean mapMarkerAdded;
+    SupportMapFragment mapFragment;
     private boolean cameraAnimatedToCurrentLocation;
-    View baseViewQuestionnaireFragment;
+    View baseViewQuestionnaireFragment = null;
     boolean simpleMapView = true;
     public static boolean adversaryMode;
     private static GoogleMap mMap = null;
@@ -72,6 +75,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     public long endQuestionTimeInMillisAdversary;
     public long timeTakenForAQuestionInMillis;
     public long timeTakenForAQuestionInMillisAdversary;
+    LatLng actualLatLng;
     PlaceAutocompleteFragment autocompleteFragment;
 
     // getting user's location from GoogleMapsApi
@@ -95,6 +99,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
             adversaryMode = true;
             AppGlobals.putAdversaryAdded(true);
             // resetting correct answer counter before adversary retake
+            System.out.println("adversary Retake");
             correctAnswerCounter = 0;
             questionCount = 0;
             tvQuestionnaireBottomOverlayOne.setText("1/10");
@@ -105,21 +110,35 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
 
     public static final Runnable proceedWithoutAdversary = new Runnable() {
         public void run() {
-            Helpers.loadFragment(MainActivity.fragmentManager, new ExitSurveyFragment(), false, null);
+            Helpers.loadFragment(MainActivity.fragmentManager, new AuthenticationFragmentTwo(), false, null);
+            AppGlobals.putAppStatus(7);
         }
     };
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        baseViewQuestionnaireFragment = inflater.inflate(R.layout.fragment_questionnaire, container, false);
+
+        if (baseViewQuestionnaireFragment != null) {
+            ViewGroup parent = (ViewGroup) baseViewQuestionnaireFragment.getParent();
+            if (parent != null)
+                parent.removeView(baseViewQuestionnaireFragment);
+        }
+        try {
+            baseViewQuestionnaireFragment = inflater.inflate(R.layout.fragment_questionnaire, container, false);
+        } catch (InflateException e) {
+            Log.e("inflate ", "" + e);
+        /* map is already there, just return view as it is */
+        }
+
+
+
         // dismiss notification on start of this fragment
         Helpers.dismissNotification();
 
         getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
-        autocompleteFragment = (PlaceAutocompleteFragment) getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete);
-
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            autocompleteFragment = (PlaceAutocompleteFragment) getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete);
+            autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
 
             @Override
             public void onPlaceSelected(Place place) {
@@ -129,12 +148,12 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                 searchAnimateCamera(place.getLatLng());
             }
 
-            @Override
-            public void onError(Status status) {
-                // TODO: Handle the error.
-                Log.i("place", "An error occurred: " + status);
-            }
-        });
+                @Override
+                public void onError(Status status) {
+                    // TODO: Handle the error.
+                    Log.i("place", "An error occurred: " + status);
+                }
+            });
 
         // getting current system time before test
 
@@ -180,7 +199,11 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         btnQuestionnaireFragmentRemove.setEnabled(false);
         btnQuestionnaireFragmentRemove.setAlpha(0.5f);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
+        if (AuthenticationFragmentTwo.isAdversaryTestRequestedForReTaken) {
+            adversaryRetake.run();
+        }
+
+        mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map_for_questionnaire);
 
         // getting google maps from map fragment
@@ -296,8 +319,10 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                             // saving test time taken by the user in database
                             AppGlobals.putTimeTakenForTestByUser(timeTakenForTestByUser);
                             // saving correct answers in database
+                            correctAnswerCounter ++;
                             AppGlobals.putUserTestResults(correctAnswerCounter + "/10");
                             AppGlobals.testTakenByAdversary(false);
+                            System.out.println("Condition true");
                             correctAnswerCounter = 0;
                         } else {
                             systemTimeInMillisAfterTestAdversary = System.currentTimeMillis();
@@ -305,6 +330,10 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                             long timeTakenForTestInMillisAdv = systemTimeInMillisAfterTestAdversary - systemTimeInMillisBeforeTestAdversary;
                             String timeTakenForTestByAdv = Helpers.getTimeTakenInMinutesAndSeconds(timeTakenForTestInMillisAdv);
                             // saving adversary test time in database
+                            if (Helpers.isAnswerLocationInVicinityOfActualLocation(answerLatLng, actualLatLng)) {
+                                correctAnswerCounter++;
+                                System.out.println("Correct Answer Counter: " + correctAnswerCounter);
+                            }
                             AppGlobals.putTimeTakenForTestByAdversary(timeTakenForTestByAdv);
                             AppGlobals.putAdversaryTestResults(correctAnswerCounter + "/10");
                             AppGlobals.testTakenByAdversary(true);
@@ -322,11 +351,12 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
 
                     // getting latitude and longitude and converting them to latlng object in order to
                     // compare results
-                    LatLng actualLatLng = new LatLng(Double.parseDouble(mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).
+                    actualLatLng = new LatLng(Double.parseDouble(mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).
                             get("latitude")), Double.parseDouble(mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).
                             get("longitude")));
                     if (Helpers.isAnswerLocationInVicinityOfActualLocation(answerLatLng, actualLatLng)) {
                         correctAnswerCounter++;
+                        System.out.println("Correct Answer Counter: " + correctAnswerCounter);
                     }
                 }
                 break;
@@ -402,8 +432,6 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         });
     }
 
-
-
     @Override
     public void onPause() {
         super.onPause();
@@ -415,6 +443,19 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     public void onResume() {
         super.onResume();
         isQuestionnaireFragmentOpen = true;
+    }
+
+    @Override
+    public void onDestroyView() {
+
+        FragmentManager fm = getFragmentManager();
+
+        Fragment xmlFragment = fm.findFragmentById(R.id.place_autocomplete);
+        if (xmlFragment != null) {
+            fm.beginTransaction().remove(xmlFragment).commit();
+        }
+
+        super.onDestroyView();
     }
 
     private void addAnswerMarkerOnMap(LatLng latLng) {
