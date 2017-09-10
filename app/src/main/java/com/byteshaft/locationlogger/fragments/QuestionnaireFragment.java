@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.InflateException;
 import android.view.LayoutInflater;
@@ -443,19 +442,6 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     public void onResume() {
         super.onResume();
         isQuestionnaireFragmentOpen = true;
-    }
-
-    @Override
-    public void onDestroyView() {
-
-        FragmentManager fm = getFragmentManager();
-
-        Fragment xmlFragment = fm.findFragmentById(R.id.place_autocomplete);
-        if (xmlFragment != null) {
-            fm.beginTransaction().remove(xmlFragment).commit();
-        }
-
-        super.onDestroyView();
     }
 
     private void addAnswerMarkerOnMap(LatLng latLng) {
