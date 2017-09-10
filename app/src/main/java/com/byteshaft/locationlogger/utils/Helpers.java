@@ -56,7 +56,6 @@ public class Helpers {
             AppGlobals.putAppStatus(0);
             AppGlobals.putAdversaryAdded(false);
             Helpers.loadFragment(fragmentManager, new WelcomeFragment(), true, null);
-            QuestionnaireFragment.adversaryMode = false;
             Intent locationServiceIntent = new Intent(MainActivity.getInstance(), LocationService.class);
             MainActivity.getInstance().stopService(locationServiceIntent);
             Helpers.dismissNotification();
@@ -64,6 +63,7 @@ public class Helpers {
             AppGlobals.putAdversaryTestResults(null);
 
             AppGlobals.getContext().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
+            QuestionnaireFragment.adversaryMode = false;
             if (LocationService.repeatNotificationTimer != null) {
                 LocationService.repeatNotificationTimer.cancel();
             }

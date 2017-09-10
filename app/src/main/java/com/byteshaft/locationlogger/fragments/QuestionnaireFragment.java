@@ -26,6 +26,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -75,7 +76,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     public long timeTakenForAQuestionInMillis;
     public long timeTakenForAQuestionInMillisAdversary;
     LatLng actualLatLng;
-    PlaceAutocompleteFragment autocompleteFragment;
+    SupportPlaceAutocompleteFragment autocompleteFragment;
 
     // getting user's location from GoogleMapsApi
     private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
@@ -103,7 +104,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
             questionCount = 0;
             tvQuestionnaireBottomOverlayOne.setText("1/10");
             tvQuestionnaireBottomOverlayTwo.setText("Where was i on "
-            +mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).get("timestamp"));
+                    + mDatabaseHelpers.getRandomRecordFromAllRecords().get(0).get("timestamp"));
         }
     };
 
@@ -131,13 +132,12 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         }
 
 
-
         // dismiss notification on start of this fragment
         Helpers.dismissNotification();
 
         getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
-            autocompleteFragment = (PlaceAutocompleteFragment) getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete);
-            autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+        autocompleteFragment = (SupportPlaceAutocompleteFragment) getChildFragmentManager().findFragmentById(R.id.place_autocomplete);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
 
             @Override
             public void onPlaceSelected(Place place) {
@@ -147,12 +147,12 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                 searchAnimateCamera(place.getLatLng());
             }
 
-                @Override
-                public void onError(Status status) {
-                    // TODO: Handle the error.
-                    Log.i("place", "An error occurred: " + status);
-                }
-            });
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i("place", "An error occurred: " + status);
+            }
+        });
 
         // getting current system time before test
 
@@ -218,22 +218,22 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
 //                    Helpers.showProgressDialog(MainActivity.getInstance(), "Acquiring current location");
 
                 // this method enables users to get his/her location on google maps
-                    mMap.setMyLocationEnabled(true);
+                mMap.setMyLocationEnabled(true);
                 // removing the pre-defined current location button from google maps
-                    mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                    mMap.getUiSettings().setCompassEnabled(true);
-                    mMap.setOnMyLocationChangeListener(myLocationChangeListener);
-                    mMap.getUiSettings().setMapToolbarEnabled(false);
+                mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                mMap.getUiSettings().setCompassEnabled(true);
+                mMap.setOnMyLocationChangeListener(myLocationChangeListener);
+                mMap.getUiSettings().setMapToolbarEnabled(false);
 
                 // this method detects whenever user long presses on maps
-                        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-                            @Override
-                            public void onMapLongClick(final LatLng latLng) {
-                                addAnswerMarkerOnMap(latLng);
-                            }
-                        });
+                mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                    @Override
+                    public void onMapLongClick(final LatLng latLng) {
+                        addAnswerMarkerOnMap(latLng);
                     }
                 });
+            }
+        });
         return baseViewQuestionnaireFragment;
     }
 
@@ -318,7 +318,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                             // saving test time taken by the user in database
                             AppGlobals.putTimeTakenForTestByUser(timeTakenForTestByUser);
                             // saving correct answers in database
-                            correctAnswerCounter ++;
+                            correctAnswerCounter++;
                             AppGlobals.putUserTestResults(correctAnswerCounter + "/10");
                             AppGlobals.testTakenByAdversary(false);
                             System.out.println("Condition true");
