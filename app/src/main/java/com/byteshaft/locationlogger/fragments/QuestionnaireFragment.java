@@ -5,15 +5,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -28,6 +25,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -76,7 +74,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
     public long timeTakenForAQuestionInMillis;
     public long timeTakenForAQuestionInMillisAdversary;
     LatLng actualLatLng;
-    PlaceAutocompleteFragment autocompleteFragment;
+    SupportPlaceAutocompleteFragment autocompleteFragment;
 
     // getting user's location from GoogleMapsApi
     private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
@@ -124,8 +122,7 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
         Helpers.dismissNotification();
 
         getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
-        if (autocompleteFragment == null) {
-            autocompleteFragment = (PlaceAutocompleteFragment) getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete);
+            autocompleteFragment = (SupportPlaceAutocompleteFragment) getChildFragmentManager().findFragmentById(R.id.place_autocomplete);
             autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
 
                 @Override
@@ -139,7 +136,6 @@ public class QuestionnaireFragment extends Fragment implements View.OnClickListe
                     Log.i("place", "An error occurred: " + status);
                 }
             });
-        }
 
         // getting current system time before test
 

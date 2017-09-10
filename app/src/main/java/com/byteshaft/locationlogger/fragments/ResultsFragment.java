@@ -77,8 +77,8 @@ public class ResultsFragment extends Fragment implements View.OnClickListener {
                 AppGlobals.putUserTestResults(null);
                 AppGlobals.putAdversaryTestResults(null);
                 getActivity().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
-                QuestionnaireFragment.adversaryMode = false;
                 AppGlobals.getContext().getSharedPreferences("CREDENTIALS", 0).edit().clear().apply();
+                QuestionnaireFragment.adversaryMode = false;
                 getActivity().finish();
                 break;
         }

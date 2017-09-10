@@ -12,7 +12,7 @@
 
     <fragment
         android:id="@+id/place_autocomplete"
-        android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+        android:name="com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 

@@ -73,7 +73,7 @@ public class AuthenticationFragmentTwo extends Fragment implements View.OnClickL
                 break;
             case R.id.btn_authentication_cancel_two:
                 Helpers.AlertDialogWithPositiveFunctionNegativeButton(getActivity(), "Are you sure?",
-                        "Proceeding with withdrawal will result in all of your logged data to be lost.",
+                        "Cancelling will bring you back to the Adversary Retake.",
                         "Continue", "Cancel", Helpers.openAdversaryRetake);
                 isAdversaryTestRequestedForReTaken = true;
         }
